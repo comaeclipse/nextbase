@@ -21,7 +21,8 @@ export default async function AdminPage() {
     );
   }
 
-  const cookieToken = cookies().get(ADMIN_COOKIE)?.value;
+  const cookieStore = await cookies();
+  const cookieToken = cookieStore.get(ADMIN_COOKIE)?.value;
   const isAuthorized = cookieToken === token;
 
   if (!isAuthorized) {
