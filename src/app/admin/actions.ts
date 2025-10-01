@@ -3,13 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-
-export const ADMIN_COOKIE = "admin-token";
-
-export type ActionResult = {
-  success: boolean;
-  message: string;
-};
+import { ADMIN_COOKIE } from "./shared";
+import type { ActionResult } from "./shared";
 
 function adminToken() {
   return process.env.ADMIN_DASHBOARD_TOKEN ?? "";
@@ -261,4 +256,5 @@ export async function deleteDestinationAction(_prev: ActionResult | undefined, f
     message: "Destination deleted.",
   };
 }
+
 

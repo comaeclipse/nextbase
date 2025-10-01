@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { AdminLoginForm } from "@/app/admin/login-form";
 import { CreateDestinationForm } from "@/app/admin/create-destination-form";
 import { DestinationEditor } from "@/app/admin/destination-editor";
-import { ADMIN_COOKIE, signOutAction } from "@/app/admin/actions";
+import { signOutAction } from "@/app/admin/actions";
+import { ADMIN_COOKIE } from "@/app/admin/shared";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminPage() {
@@ -72,3 +73,4 @@ export default async function AdminPage() {
     </main>
   );
 }
+

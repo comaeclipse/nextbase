@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormState } from "react-dom";
-import type { ActionResult } from "@/app/admin/actions";
+import type { ActionResult } from "@/app/admin/shared";
 import { authenticateAction } from "@/app/admin/actions";
 
 const INITIAL_STATE: ActionResult = { success: false, message: "" };

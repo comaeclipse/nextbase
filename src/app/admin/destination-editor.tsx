@@ -3,7 +3,7 @@
 import type { MouseEvent } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import type { Destination } from "@prisma/client";
-import type { ActionResult } from "@/app/admin/actions";
+import type { ActionResult } from "@/app/admin/shared";
 import { deleteDestinationAction, updateDestinationAction } from "@/app/admin/actions";
 
 const INITIAL_STATE: ActionResult = { success: false, message: "" };
