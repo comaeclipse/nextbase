@@ -82,14 +82,11 @@ export async function authenticateAction(
   };
 }
 
-export async function signOutAction(): Promise<ActionResult> {
+export async function signOutAction(formData: FormData): Promise<void> {
+  void formData;
   const cookieStore = await cookies();
   cookieStore.delete(ADMIN_COOKIE);
   revalidatePath("/admin");
-  return {
-    success: true,
-    message: "Signed out.",
-  };
 }
 
 export async function createDestinationAction(
@@ -266,3 +263,6 @@ export async function deleteDestinationAction(
     message: "Destination deleted.",
   };
 }
+
+
+
