@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   ClimateProfile,
   Destination,
   GunLawProfile,
@@ -6,7 +6,7 @@
   Region,
   TaxBand,
   TechPresence,
-} from "@/data/destinations";
+} from "@/types/destination";
 
 export interface FilterState {
   regions: Region[];

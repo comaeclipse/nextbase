@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   useEffect,
@@ -8,16 +8,16 @@ import {
   type SetStateAction,
 } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import {
-  destinations,
-  type ClimateProfile,
-  type Destination,
-  type GunLawProfile,
-  type LifestyleTag,
-  type Region,
-  type TaxBand,
-  type TechPresence,
-} from "@/data/destinations";
+
+import type {
+  ClimateProfile,
+  Destination,
+  GunLawProfile,
+  LifestyleTag,
+  Region,
+  TaxBand,
+  TechPresence,
+} from "@/types/destination";
 import type { ActiveFilter, FilterState } from "@/lib/filtering";
 import {
   DEFAULT_FILTER_STATE,
@@ -68,14 +68,18 @@ type MultiSelectKey =
   | "techPresence"
   | "gunLaws";
 
-export function RetirementExplorer() {
+type RetirementExplorerProps = {
+  destinations: Destination[];
+};
+
+export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTER_STATE);
   const [selectedId, setSelectedId] = useState<string>(() => destinations[0]?.id ?? "");
   const [isFilterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
   const filteredDestinations = useMemo(
     () => filterDestinations(destinations, filters),
-    [filters],
+    [destinations, filters],
   );
 
   useEffect(() => {
@@ -96,7 +100,7 @@ export function RetirementExplorer() {
       destinations.find((destination) => destination.id === selectedId) ||
       filteredDestinations[0]
     );
-  }, [filteredDestinations, selectedId]);
+  }, [destinations, filteredDestinations, selectedId]);
 
   const activeFilters = useMemo(
     () => describeActiveFilters(filters),
@@ -809,3 +813,4 @@ function formatLabel(value: string) {
     .map((fragment) => fragment.charAt(0).toUpperCase() + fragment.slice(1))
     .join(" ");
 }
+
