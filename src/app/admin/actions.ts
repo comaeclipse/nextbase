@@ -10,12 +10,13 @@ function adminToken() {
   return process.env.ADMIN_DASHBOARD_TOKEN ?? "";
 }
 
-function isAuthorized() {
+async function isAuthorized() {
   const token = adminToken();
   if (!token) {
     return false;
   }
-  const cookieToken = cookies().get(ADMIN_COOKIE)?.value ?? "";
+  const cookieStore = await cookies();
+  const cookieToken = cookieStore.get(ADMIN_COOKIE)?.value ?? "";
   return cookieToken === token;
 }
 
@@ -55,15 +56,17 @@ export async function authenticateAction(
     };
   }
 
+  const cookieStore = await cookies();
+
   if (provided !== token) {
-    cookies().delete(ADMIN_COOKIE);
+    cookieStore.delete(ADMIN_COOKIE);
     return {
       success: false,
       message: "Invalid token.",
     };
   }
 
-  cookies().set(ADMIN_COOKIE, token, {
+  cookieStore.set(ADMIN_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: true,
@@ -80,7 +83,8 @@ export async function authenticateAction(
 }
 
 export async function signOutAction(): Promise<ActionResult> {
-  cookies().delete(ADMIN_COOKIE);
+  const cookieStore = await cookies();
+  cookieStore.delete(ADMIN_COOKIE);
   revalidatePath("/admin");
   return {
     success: true,
@@ -92,7 +96,7 @@ export async function createDestinationAction(
   _prev: ActionResult | undefined,
   formData: FormData,
 ): Promise<ActionResult> {
-  if (!isAuthorized()) {
+  if (!(await isAuthorized())) {
     return unauthorizedResult();
   }
 
@@ -159,8 +163,11 @@ export async function createDestinationAction(
   };
 }
 
-export async function updateDestinationAction(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
-  if (!isAuthorized()) {
+export async function updateDestinationAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  if (!(await isAuthorized())) {
     return unauthorizedResult();
   }
 
@@ -219,8 +226,11 @@ export async function updateDestinationAction(_prev: ActionResult | undefined, f
   };
 }
 
-export async function deleteDestinationAction(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
-  if (!isAuthorized()) {
+export async function deleteDestinationAction(
+  _prev: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  if (!(await isAuthorized())) {
     return unauthorizedResult();
   }
 
@@ -256,5 +266,3 @@ export async function deleteDestinationAction(_prev: ActionResult | undefined, f
     message: "Destination deleted.",
   };
 }
-
-
