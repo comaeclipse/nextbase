@@ -1,0 +1,19 @@
+[
+  {
+    "id": "houston-tx",
+    "city": "Houston",
+    "state": "Texas",
+    "governorName": "Greg Abbott",
+    "governorParty": "republican",
+    "salesTax": 8.25,
+    "incomeTax": 0,
+    "marijuanaStatus": "medical",
+    "firearmLaws": "permissive",
+    "veteranBenefits": "Partial property tax reduction for eligible veterans and surviving spouses.",
+    "climate": "Humid subtropical with roughly 204 sunny days per year.",
+    "snowfall": 15,
+    "rainfall": 47,
+    "gasPrice": 2.74,
+    "costOfLiving": 60.6
+  }
+]

@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Veterans Relocation Explorer
 
-## Getting Started
+A Next.js app that helps veterans compare relocation destinations across taxes, climate, cost of living, and state-level benefits. The app no longer depends on Postgres/Prisma; data now lives in a checked-in JSON file that is easy to maintain without a database.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js 18+
+- `ADMIN_DASHBOARD_TOKEN` environment variable set for any environment that should allow admin access
+
+## Key Scripts
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev      # local development with Turbopack
+npm run build    # production build
+npm run start    # run the compiled build
+npm run lint     # lint the project
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Data Source
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Destinations are stored in `src/data/destinations.json`. Each record uses the following schema:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```json
+{
+  "id": "houston-tx",
+  "city": "Houston",
+  "state": "Texas",
+  "governorName": "Greg Abbott",
+  "governorParty": "republican",
+  "salesTax": 8.25,
+  "incomeTax": 0,
+  "marijuanaStatus": "medical",
+  "firearmLaws": "permissive",
+  "veteranBenefits": "Partial property tax reduction for eligible veterans and surviving spouses.",
+  "climate": "Humid subtropical with roughly 204 sunny days per year.",
+  "snowfall": 15,
+  "rainfall": 47,
+  "gasPrice": 2.74,
+  "costOfLiving": 60.6
+}
+```
 
-## Learn More
+### Editing Destinations
 
-To learn more about Next.js, take a look at the following resources:
+1. Manually edit `src/data/destinations.json`, or
+2. Sign into `/admin` with the `ADMIN_DASHBOARD_TOKEN` cookie and use the UI forms.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+> **Note:** When deployed to read-only environments (e.g., Vercel), server actions cannot persist changes back to the repository. In those cases, edit and commit the JSON file directly.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Admin Dashboard
 
-## Deploy on Vercel
+- Set `ADMIN_DASHBOARD_TOKEN` locally (e.g. in `.env.local`) and redeploy after updating the value in production.
+- Navigate to `/admin`, enter the token, and manage destinations via the provided forms.
+- Clicking **Sign out** clears the admin cookie.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## API
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `GET /api/destinations`: returns the JSON data so you can integrate with other tools or sanity-check deployments.
+
+## Deployment Notes
+
+- The project builds with `next build --turbopack` (see `npm run build`).
+- Because the data source is a static JSON file, remember to commit any changes made in development before deploying.

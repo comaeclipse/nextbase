@@ -5,7 +5,7 @@ import { CreateDestinationForm } from "@/app/admin/create-destination-form";
 import { DestinationEditor } from "@/app/admin/destination-editor";
 import { signOutAction } from "@/app/admin/actions";
 import { ADMIN_COOKIE } from "@/app/admin/shared";
-import { prisma } from "@/lib/prisma";
+import { loadDestinations } from "@/lib/destination-store";
 
 export default async function AdminPage() {
   const token = process.env.ADMIN_DASHBOARD_TOKEN;
@@ -29,9 +29,7 @@ export default async function AdminPage() {
     return <AdminLoginForm />;
   }
 
-  const destinations = await prisma.destination.findMany({
-    orderBy: { name: "asc" },
-  });
+  const destinations = await loadDestinations();
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 px-4 py-10">
@@ -39,7 +37,7 @@ export default async function AdminPage() {
         <div>
           <h1 className="text-3xl font-semibold text-primary">Admin dashboard</h1>
           <p className="text-sm text-muted-foreground">
-            Manage the destinations stored in Neon via Prisma.
+            Manage destination insights stored in the JSON data file.
           </p>
         </div>
         <form action={signOutAction}>
@@ -62,7 +60,7 @@ export default async function AdminPage() {
         <div className="space-y-6">
           {destinations.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-color-border/40 bg-color-muted/30 p-6 text-sm text-muted-foreground">
-              No destinations found. Use the form above to seed your database.
+              No destinations found. Use the form above to add your first record.
             </p>
           ) : (
             destinations.map((destination) => (
@@ -74,5 +72,3 @@ export default async function AdminPage() {
     </main>
   );
 }
-
-

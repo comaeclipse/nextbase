@@ -2,9 +2,11 @@
 
 import type { MouseEvent } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import type { Destination } from "@prisma/client";
-import type { ActionResult } from "@/app/admin/shared";
+
 import { deleteDestinationAction, updateDestinationAction } from "@/app/admin/actions";
+import { FIREARM_OPTIONS, MARIJUANA_OPTIONS, PARTY_OPTIONS } from "@/data/destination-options";
+import type { Destination } from "@/types/destination";
+import type { ActionResult } from "@/app/admin/shared";
 
 const INITIAL_STATE: ActionResult = { success: false, message: "" };
 
@@ -15,40 +17,48 @@ export function DestinationEditor({ destination }: { destination: Destination })
   return (
     <div className="space-y-4 rounded-2xl border border-color-border/60 bg-surface p-6 shadow-sm">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-primary">{destination.name}</h3>
-        <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{destination.id}</span>
+        <div>
+          <h3 className="text-lg font-semibold text-primary">{destination.city}, {destination.state}</h3>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{destination.id}</p>
+        </div>
+        <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          {formatLabel(destination.governorParty)}
+        </span>
       </div>
       <form action={updateAction} className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <input type="hidden" name="id" value={destination.id} />
-        <Field label="Name" name="name" defaultValue={destination.name} required />
-        <Field label="State/Region" name="state" defaultValue={destination.state} />
-        <Field label="Region" name="region" defaultValue={destination.region} />
-        <Field label="Tax band" name="taxBand" defaultValue={destination.taxBand} />
-        <Field label="Tech presence" name="techPresence" defaultValue={destination.techPresence} />
-        <Field label="Gun laws" name="gunLaws" defaultValue={destination.gunLaws} />
-        <Field label="Hero image" name="heroImage" defaultValue={destination.heroImage} />
-        <NumberField label="Cost of living index" name="costOfLivingIndex" defaultValue={destination.costOfLivingIndex} required />
-        <NumberField label="VA resources score" name="vaResourcesScore" defaultValue={destination.vaResourcesScore} required />
-        <NumberField label="Healthcare index" name="healthcareIndex" defaultValue={destination.healthcareIndex} required />
-        <Field
-          label="Climate tags"
-          name="climate"
-          defaultValue={destination.climate.join(", ")}
-          placeholder="warm, coastal"
+        <Field label="City" name="city" defaultValue={destination.city} required />
+        <Field label="State" name="state" defaultValue={destination.state} required />
+        <Field label="Governor name" name="governorName" defaultValue={destination.governorName} required />
+        <SelectField
+          label="Governor party"
+          name="governorParty"
+          defaultValue={destination.governorParty}
+          options={PARTY_OPTIONS}
+          required
         />
-        <Field
-          label="Lifestyle tags"
-          name="lifestyle"
-          defaultValue={destination.lifestyle.join(", ")}
-          placeholder="arts & culture, tech culture"
+        <NumberField label="Sales tax (%)" name="salesTax" defaultValue={destination.salesTax} required step="0.1" />
+        <NumberField label="Income tax (%)" name="incomeTax" defaultValue={destination.incomeTax} required step="0.1" />
+        <SelectField
+          label="Marijuana status"
+          name="marijuanaStatus"
+          defaultValue={destination.marijuanaStatus}
+          options={MARIJUANA_OPTIONS}
+          required
         />
-        <Field
-          label="Highlights"
-          name="highlights"
-          defaultValue={destination.highlights.join(", ")}
-          placeholder="Highlight one, Highlight two"
+        <SelectField
+          label="Firearm laws"
+          name="firearmLaws"
+          defaultValue={destination.firearmLaws}
+          options={FIREARM_OPTIONS}
+          required
         />
-        <SummaryField defaultValue={destination.summary} />
+        <Field label="Climate" name="climate" defaultValue={destination.climate} required />
+        <NumberField label="Avg snowfall (in/yr)" name="snowfall" defaultValue={destination.snowfall} required step="0.1" />
+        <NumberField label="Avg rainfall (in/yr)" name="rainfall" defaultValue={destination.rainfall} required step="0.1" />
+        <NumberField label="Gas price ($/gal)" name="gasPrice" defaultValue={destination.gasPrice} required step="0.01" />
+        <NumberField label="Cost of living index" name="costOfLiving" defaultValue={destination.costOfLiving} required step="0.1" />
+        <SummaryField defaultValue={destination.veteranBenefits} />
         <div className="md:col-span-2 flex items-center gap-3">
           <SubmitButton idleLabel="Save changes" pendingLabel="Saving..." />
           {updateState.message ? (
@@ -75,18 +85,16 @@ type FieldProps = {
   label: string;
   name: string;
   defaultValue?: string;
-  placeholder?: string;
   required?: boolean;
 };
 
-function Field({ label, name, defaultValue, placeholder, required }: FieldProps) {
+function Field({ label, name, defaultValue, required }: FieldProps) {
   return (
     <label className="space-y-2 text-sm text-primary">
       <span className="block font-medium">{label}</span>
       <input
         name={name}
         defaultValue={defaultValue}
-        placeholder={placeholder}
         required={required}
         className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
       />
@@ -99,9 +107,10 @@ type NumberFieldProps = {
   name: string;
   defaultValue: number;
   required?: boolean;
+  step?: string;
 };
 
-function NumberField({ label, name, defaultValue, required }: NumberFieldProps) {
+function NumberField({ label, name, defaultValue, required, step }: NumberFieldProps) {
   return (
     <label className="space-y-2 text-sm text-primary">
       <span className="block font-medium">{label}</span>
@@ -110,8 +119,37 @@ function NumberField({ label, name, defaultValue, required }: NumberFieldProps) 
         type="number"
         defaultValue={defaultValue}
         required={required}
+        step={step}
         className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
       />
+    </label>
+  );
+}
+
+type SelectFieldProps = {
+  label: string;
+  name: string;
+  defaultValue: string;
+  options: { label: string; value: string }[];
+  required?: boolean;
+};
+
+function SelectField({ label, name, defaultValue, options, required }: SelectFieldProps) {
+  return (
+    <label className="space-y-2 text-sm text-primary">
+      <span className="block font-medium">{label}</span>
+      <select
+        name={name}
+        defaultValue={defaultValue}
+        required={required}
+        className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }
@@ -119,9 +157,9 @@ function NumberField({ label, name, defaultValue, required }: NumberFieldProps) 
 function SummaryField({ defaultValue }: { defaultValue: string }) {
   return (
     <label className="md:col-span-2 space-y-2 text-sm text-primary">
-      <span className="block font-medium">Summary</span>
+      <span className="block font-medium">Veteran benefits snapshot</span>
       <textarea
-        name="summary"
+        name="veteranBenefits"
         defaultValue={defaultValue}
         rows={4}
         className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
@@ -162,4 +200,9 @@ function DeleteButton() {
   );
 }
 
-
+function formatLabel(value: string) {
+  return value
+    .split(/[\s-]+/)
+    .map((fragment) => fragment.charAt(0).toUpperCase() + fragment.slice(1))
+    .join(" ");
+}

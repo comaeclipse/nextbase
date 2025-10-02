@@ -2,8 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { useFormState } from "react-dom";
+
 import type { ActionResult } from "@/app/admin/shared";
 import { createDestinationAction } from "@/app/admin/actions";
+import { FIREARM_OPTIONS, MARIJUANA_OPTIONS, PARTY_OPTIONS } from "@/data/destination-options";
 
 const INITIAL_STATE: ActionResult = { success: false, message: "" };
 
@@ -18,33 +20,39 @@ export function CreateDestinationForm() {
   }, [state.success]);
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-4 rounded-2xl border border-color-border/60 bg-surface p-6 shadow-sm">
+    <form
+      ref={formRef}
+      action={formAction}
+      className="space-y-4 rounded-2xl border border-color-border/60 bg-surface p-6 shadow-sm"
+    >
       <h2 className="text-lg font-semibold text-primary">Add destination</h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TextField name="id" label="ID (slug)" required placeholder="city-state" />
-        <TextField name="name" label="Name" required />
-        <TextField name="state" label="State/Region" />
-        <TextField name="region" label="Region" placeholder="Southeast" />
-        <TextField name="taxBand" label="Tax band" placeholder="very-low" />
-        <TextField name="techPresence" label="Tech presence" placeholder="emerging" />
-        <TextField name="gunLaws" label="Gun laws" placeholder="moderate" />
-        <TextField name="heroImage" label="Hero image path" placeholder="/images/destinations/example.jpg" />
-        <NumberField name="costOfLivingIndex" label="Cost of living index" required />
-        <NumberField name="vaResourcesScore" label="VA resources score" required />
-        <NumberField name="healthcareIndex" label="Healthcare index" required />
-        <TextField name="climate" label="Climate tags" placeholder="warm, coastal" />
-        <TextField name="lifestyle" label="Lifestyle tags" placeholder="arts & culture, tech culture" />
-        <TextField name="highlights" label="Highlights" placeholder="Item one, Item two" />
+        <TextField name="city" label="City" required placeholder="Tampa" />
+        <TextField name="state" label="State" required placeholder="Florida" />
+        <TextField name="governorName" label="Governor name" required placeholder="Jane Doe" />
+        <SelectField name="governorParty" label="Governor party" options={PARTY_OPTIONS} required />
+        <NumberField name="salesTax" label="Sales tax (%)" required step="0.1" />
+        <NumberField name="incomeTax" label="Income tax (%)" required step="0.1" />
+        <SelectField name="marijuanaStatus" label="Marijuana status" options={MARIJUANA_OPTIONS} required />
+        <SelectField name="firearmLaws" label="Firearm laws" options={FIREARM_OPTIONS} required />
+        <TextField name="climate" label="Climate" required placeholder="Humid subtropical" />
+        <NumberField name="snowfall" label="Avg snowfall (in/yr)" required step="0.1" />
+        <NumberField name="rainfall" label="Avg rainfall (in/yr)" required step="0.1" />
+        <NumberField name="gasPrice" label="Gas price ($/gal)" required step="0.01" />
+        <NumberField name="costOfLiving" label="Cost of living index" required step="0.1" />
       </div>
       <div className="space-y-2">
-        <label htmlFor="summary" className="block text-sm font-medium text-primary">
-          Summary
+        <label htmlFor="veteranBenefits" className="block text-sm font-medium text-primary">
+          Veteran benefits snapshot
         </label>
         <textarea
-          id="summary"
-          name="summary"
+          id="veteranBenefits"
+          name="veteranBenefits"
           rows={4}
+          required
           className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
+          placeholder="Summarize key state-level benefits, property tax exemptions, etc."
         />
       </div>
       {state.message ? (
@@ -86,9 +94,9 @@ function TextField({ name, label, placeholder, required }: TextFieldProps) {
   );
 }
 
-type NumberFieldProps = TextFieldProps;
+type NumberFieldProps = TextFieldProps & { step?: string };
 
-function NumberField({ name, label, placeholder, required }: NumberFieldProps) {
+function NumberField({ name, label, placeholder, required, step }: NumberFieldProps) {
   return (
     <div className="space-y-2">
       <label htmlFor={name} className="block text-sm font-medium text-primary">
@@ -100,8 +108,42 @@ function NumberField({ name, label, placeholder, required }: NumberFieldProps) {
         type="number"
         required={required}
         placeholder={placeholder}
+        step={step}
         className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
       />
+    </div>
+  );
+}
+
+type SelectFieldProps = {
+  name: string;
+  label: string;
+  options: { label: string; value: string }[];
+  required?: boolean;
+};
+
+function SelectField({ name, label, options, required }: SelectFieldProps) {
+  return (
+    <div className="space-y-2">
+      <label htmlFor={name} className="block text-sm font-medium text-primary">
+        {label}
+      </label>
+      <select
+        id={name}
+        name={name}
+        required={required}
+        className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
+        defaultValue=""
+      >
+        <option value="" disabled>
+          Select
+        </option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

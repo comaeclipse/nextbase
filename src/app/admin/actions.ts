@@ -1,10 +1,20 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+
+import {
+  createDestination,
+  deleteDestination,
+  updateDestination,
+} from "@/lib/destination-store";
 import { ADMIN_COOKIE } from "./shared";
 import type { ActionResult } from "./shared";
+import type { Destination, FirearmLaw, GovernorParty, MarijuanaStatus } from "@/types/destination";
+
+const GOVERNOR_PARTIES: GovernorParty[] = ["democrat", "republican", "independent", "nonpartisan"];
+const MARIJUANA_STATUSES: MarijuanaStatus[] = ["recreational", "medical", "decriminalized", "illegal"];
+const FIREARM_LAWS: FirearmLaw[] = ["permissive", "moderate", "restrictive"];
 
 function adminToken() {
   return process.env.ADMIN_DASHBOARD_TOKEN ?? "";
@@ -27,19 +37,55 @@ function unauthorizedResult(): ActionResult {
   };
 }
 
-function parseCsv(value: FormDataEntryValue | null) {
-  return (value?.toString() ?? "")
-    .split(/,|\n/)
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-}
-
-function parseNumber(name: string, value: FormDataEntryValue | null) {
-  const parsed = Number(value);
-  if (Number.isNaN(parsed)) {
-    throw new Error(`${name} must be a valid number.`);
+function parseRequiredString(label: string, value: FormDataEntryValue | null) {
+  const parsed = value?.toString().trim() ?? "";
+  if (!parsed) {
+    throw new Error(`${label} is required.`);
   }
   return parsed;
+}
+
+function parseNumber(label: string, value: FormDataEntryValue | null) {
+  const raw = value?.toString().trim() ?? "";
+  if (!raw) {
+    throw new Error(`${label} is required.`);
+  }
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`${label} must be a valid number.`);
+  }
+  return parsed;
+}
+
+function parseEnum<T extends string>(label: string, value: FormDataEntryValue | null, options: readonly T[]): T {
+  const parsed = value?.toString().trim().toLowerCase() as T | undefined;
+  if (!parsed) {
+    throw new Error(`${label} is required.`);
+  }
+  if (!options.includes(parsed)) {
+    throw new Error(`${label} must be one of: ${options.join(", ")}.`);
+  }
+  return parsed;
+}
+
+function toDestination(formData: FormData): Destination {
+  return {
+    id: parseRequiredString("ID", formData.get("id")),
+    city: parseRequiredString("City", formData.get("city")),
+    state: parseRequiredString("State", formData.get("state")),
+    governorName: parseRequiredString("Governor name", formData.get("governorName")),
+    governorParty: parseEnum("Governor party", formData.get("governorParty"), GOVERNOR_PARTIES),
+    salesTax: parseNumber("Sales tax", formData.get("salesTax")),
+    incomeTax: parseNumber("Income tax", formData.get("incomeTax")),
+    marijuanaStatus: parseEnum("Marijuana status", formData.get("marijuanaStatus"), MARIJUANA_STATUSES),
+    firearmLaws: parseEnum("Firearm laws", formData.get("firearmLaws"), FIREARM_LAWS),
+    veteranBenefits: parseRequiredString("Veteran benefits", formData.get("veteranBenefits")),
+    climate: parseRequiredString("Climate", formData.get("climate")),
+    snowfall: parseNumber("Average snowfall", formData.get("snowfall")),
+    rainfall: parseNumber("Average rainfall", formData.get("rainfall")),
+    gasPrice: parseNumber("Gas price", formData.get("gasPrice")),
+    costOfLiving: parseNumber("Cost of living", formData.get("costOfLiving")),
+  };
 }
 
 export async function authenticateAction(
@@ -97,47 +143,9 @@ export async function createDestinationAction(
     return unauthorizedResult();
   }
 
-  const id = formData.get("id")?.toString().trim() ?? "";
-  const name = formData.get("name")?.toString().trim() ?? "";
-  const state = formData.get("state")?.toString().trim() ?? "";
-  const region = formData.get("region")?.toString().trim() ?? "";
-  const techPresence = formData.get("techPresence")?.toString().trim() ?? "";
-  const taxBand = formData.get("taxBand")?.toString().trim() ?? "";
-  const gunLaws = formData.get("gunLaws")?.toString().trim() ?? "";
-  const summary = formData.get("summary")?.toString().trim() ?? "";
-  const heroImage = formData.get("heroImage")?.toString().trim() ?? "";
-
-  if (!id || !name) {
-    return {
-      success: false,
-      message: "ID and name are required.",
-    };
-  }
-
   try {
-    const costOfLivingIndex = parseNumber("Cost of living index", formData.get("costOfLivingIndex"));
-    const vaResourcesScore = parseNumber("VA resources score", formData.get("vaResourcesScore"));
-    const healthcareIndex = parseNumber("Healthcare index", formData.get("healthcareIndex"));
-
-    await prisma.destination.create({
-      data: {
-        id,
-        name,
-        state,
-        region,
-        climate: parseCsv(formData.get("climate")),
-        lifestyle: parseCsv(formData.get("lifestyle")),
-        highlights: parseCsv(formData.get("highlights")),
-        techPresence,
-        gunLaws,
-        taxBand,
-        costOfLivingIndex,
-        vaResourcesScore,
-        healthcareIndex,
-        summary,
-        heroImage,
-      },
-    });
+    const destination = toDestination(formData);
+    await createDestination(destination);
   } catch (error) {
     if (error instanceof Error) {
       return {
@@ -178,29 +186,8 @@ export async function updateDestinationAction(
   }
 
   try {
-    const costOfLivingIndex = parseNumber("Cost of living index", formData.get("costOfLivingIndex"));
-    const vaResourcesScore = parseNumber("VA resources score", formData.get("vaResourcesScore"));
-    const healthcareIndex = parseNumber("Healthcare index", formData.get("healthcareIndex"));
-
-    await prisma.destination.update({
-      where: { id },
-      data: {
-        name: formData.get("name")?.toString().trim() ?? "",
-        state: formData.get("state")?.toString().trim() ?? "",
-        region: formData.get("region")?.toString().trim() ?? "",
-        climate: parseCsv(formData.get("climate")),
-        lifestyle: parseCsv(formData.get("lifestyle")),
-        highlights: parseCsv(formData.get("highlights")),
-        techPresence: formData.get("techPresence")?.toString().trim() ?? "",
-        gunLaws: formData.get("gunLaws")?.toString().trim() ?? "",
-        taxBand: formData.get("taxBand")?.toString().trim() ?? "",
-        costOfLivingIndex,
-        vaResourcesScore,
-        healthcareIndex,
-        summary: formData.get("summary")?.toString().trim() ?? "",
-        heroImage: formData.get("heroImage")?.toString().trim() ?? "",
-      },
-    });
+    const destination = toDestination(formData);
+    await updateDestination(id, destination);
   } catch (error) {
     if (error instanceof Error) {
       return {
@@ -241,7 +228,7 @@ export async function deleteDestinationAction(
   }
 
   try {
-    await prisma.destination.delete({ where: { id } });
+    await deleteDestination(id);
   } catch (error) {
     if (error instanceof Error) {
       return {
@@ -263,6 +250,3 @@ export async function deleteDestinationAction(
     message: "Destination deleted.",
   };
 }
-
-
-
