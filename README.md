@@ -5,7 +5,6 @@ A Next.js app that helps veterans compare relocation destinations across taxes, 
 ## Prerequisites
 
 - Node.js 18+
-- `ADMIN_DASHBOARD_TOKEN` environment variable set for any environment that should allow admin access
 
 ## Key Scripts
 
@@ -40,18 +39,9 @@ Destinations are stored in `src/data/destinations.json`. Each record uses the fo
 }
 ```
 
-### Editing Destinations
+### Updating Destinations
 
-1. Manually edit `src/data/destinations.json`, or
-2. Sign into `/admin` with the `ADMIN_DASHBOARD_TOKEN` cookie and use the UI forms.
-
-> **Note:** When deployed to read-only environments (e.g., Vercel), server actions cannot persist changes back to the repository. In those cases, edit and commit the JSON file directly.
-
-## Admin Dashboard
-
-- Set `ADMIN_DASHBOARD_TOKEN` locally (e.g. in `.env.local`) and redeploy after updating the value in production.
-- Navigate to `/admin`, enter the token, and manage destinations via the provided forms.
-- Clicking **Sign out** clears the admin cookie.
+The dataset is static. Edit `src/data/destinations.json` directly and commit the changes whenever you need to add, update, or remove locations.
 
 ## API
 
