@@ -32,6 +32,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
   }, [destinations]);
 
   const [search, setSearch] = useState("");
+  const [view, setView] = useState<"grid" | "table">("grid");
   const [party, setParty] = useState<GovernorParty | "">("");
   const [marijuana, setMarijuana] = useState<MarijuanaStatus | "">("");
   const [firearm, setFirearm] = useState<FirearmLaw | "">("");
@@ -89,7 +90,25 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
             Compare taxes, benefits, climate, and everyday costs across the destinations in your JSON data store.
           </p>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-full border border-color-border/60 px-1 py-1 text-xs font-semibold text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => setView("grid")}
+              className={`rounded-full px-3 py-1 transition ${view === "grid" ? "bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] text-white shadow-sm" : "hover:text-primary"}`}
+            >
+              Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("table")}
+              className={`rounded-full px-3 py-1 transition ${view === "table" ? "bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] text-white shadow-sm" : "hover:text-primary"}`}
+            >
+              Table
+            </button>
+          </div>
+          <ThemeToggle />
+        </div>
       </header>
 
       <section className="glass-panel grid grid-cols-1 gap-4 p-6 md:grid-cols-4">
@@ -176,53 +195,99 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
           <h2 className="text-xl font-semibold text-primary">{filtered.length} destinations</h2>
           <p className="text-xs text-muted-foreground">Sorted by city name</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {filtered.map((destination) => (
-            <article
-              key={destination.id}
-              className="glass-panel grid-outline h-full space-y-4 p-6"
-            >
-              <header className="flex items-baseline justify-between gap-3">
-                <div>
-                  <h3 className="text-xl font-semibold text-primary">
-                    {destination.city}, {destination.state}
-                  </h3>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    Governor party: {formatLabel(destination.governorParty)}
-                  </p>
+        {filtered.length === 0 ? (
+          <div className="glass-panel p-10 text-center text-sm text-muted-foreground">
+            No destinations match the selected filters.
+          </div>
+        ) : view === "grid" ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {filtered.map((destination) => (
+              <article
+                key={destination.id}
+                className="glass-panel grid-outline h-full space-y-4 p-6"
+              >
+                <header className="flex items-baseline justify-between gap-3">
+                  <div>
+                    <h3 className="text-xl font-semibold text-primary">
+                      {destination.city}, {destination.state}
+                    </h3>
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      Governor party: {formatLabel(destination.governorParty)}
+                    </p>
+                  </div>
+                  <span className="badge-soft">
+                    COL {destination.costOfLivingLabel} ({destination.costOfLiving})
+                  </span>
+                </header>
+                <dl className="grid grid-cols-2 gap-3 text-xs">
+                  <Stat label="Sales tax" value={formatPercent.format(destination.salesTax / 100)} />
+                  <Stat label="Income tax" value={formatPercent.format(destination.incomeTax / 100)} />
+                  <Stat label="Marijuana" value={formatLabel(destination.marijuanaStatus)} />
+                  <Stat label="Firearm laws" value={formatLabel(destination.firearmLaws)} />
+                  <Stat label="Gifford grade" value={destination.giffordScore} />
+                  <Stat label="Cost of living" value={`${destination.costOfLiving} (${destination.costOfLivingLabel})`} />
+                  <Stat label="Snowfall" value={`${destination.snowfall}" / yr`} />
+                  <Stat label="Rainfall" value={`${destination.rainfall}" / yr`} />
+                  <Stat label="Sunny days" value={`${destination.sunnyDays} days`} />
+                  <Stat label="Gas price" value={formatUsd.format(destination.gasPrice)} />
+                </dl>
+                <div className="rounded-xl border border-transparent bg-[color-mix(in srgb,var(--surface-elevated) 88%, transparent)] p-4 text-sm text-primary shadow-sm">
+                  <p className="font-semibold text-muted-foreground">Climate</p>
+                  <p className="mt-1 leading-relaxed text-sm">{destination.climate}</p>
                 </div>
-                <span className="badge-soft">
-                  COL {destination.costOfLivingLabel} ({destination.costOfLiving})
-                </span>
-              </header>
-              <dl className="grid grid-cols-2 gap-3 text-xs">
-                <Stat label="Sales tax" value={formatPercent.format(destination.salesTax / 100)} />
-                <Stat label="Income tax" value={formatPercent.format(destination.incomeTax / 100)} />
-                <Stat label="Marijuana" value={formatLabel(destination.marijuanaStatus)} />
-                <Stat label="Firearm laws" value={formatLabel(destination.firearmLaws)} />
-                <Stat label="Gifford grade" value={destination.giffordScore} />
-                <Stat label="Cost of living" value={`${destination.costOfLiving} (${destination.costOfLivingLabel})`} />
-                <Stat label="Snowfall" value={`${destination.snowfall}" / yr`} />
-                <Stat label="Rainfall" value={`${destination.rainfall}" / yr`} />
-                <Stat label="Sunny days" value={`${destination.sunnyDays} days`} />
-                <Stat label="Gas price" value={formatUsd.format(destination.gasPrice)} />
-              </dl>
-              <div className="rounded-xl border border-transparent bg-[color-mix(in srgb,var(--surface-elevated) 88%, transparent)] p-4 text-sm text-primary shadow-sm">
-                <p className="font-semibold text-muted-foreground">Climate</p>
-                <p className="mt-1 leading-relaxed text-sm">{destination.climate}</p>
-              </div>
-              <div className="rounded-xl border border-transparent bg-[color-mix(in srgb,var(--surface-elevated) 88%, transparent)] p-4 text-sm text-primary shadow-sm">
-                <p className="font-semibold text-muted-foreground">Veteran benefits</p>
-                <p className="mt-1 leading-relaxed text-sm">{destination.veteranBenefits}</p>
-              </div>
-            </article>
-          ))}
-          {filtered.length === 0 ? (
-            <div className="glass-panel md:col-span-2 p-10 text-center text-sm text-muted-foreground">
-              No destinations match the selected filters.
-            </div>
-          ) : null}
-        </div>
+                <div className="rounded-xl border border-transparent bg-[color-mix(in srgb,var(--surface-elevated) 88%, transparent)] p-4 text-sm text-primary shadow-sm">
+                  <p className="font-semibold text-muted-foreground">Veteran benefits</p>
+                  <p className="mt-1 leading-relaxed text-sm">{destination.veteranBenefits}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="glass-panel overflow-x-auto">
+            <table className="w-full min-w-[800px] text-left text-sm text-primary">
+              <thead className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">City</th>
+                  <th className="px-4 py-3 font-semibold">State</th>
+                  <th className="px-4 py-3 font-semibold">Party</th>
+                  <th className="px-4 py-3 font-semibold">Sales tax</th>
+                  <th className="px-4 py-3 font-semibold">Income tax</th>
+                  <th className="px-4 py-3 font-semibold">Marijuana</th>
+                  <th className="px-4 py-3 font-semibold">Firearm</th>
+                  <th className="px-4 py-3 font-semibold">Gifford</th>
+                  <th className="px-4 py-3 font-semibold">COL</th>
+                  <th className="px-4 py-3 font-semibold">Snowfall</th>
+                  <th className="px-4 py-3 font-semibold">Rainfall</th>
+                  <th className="px-4 py-3 font-semibold">Sunny days</th>
+                  <th className="px-4 py-3 font-semibold">Gas</th>
+                  <th className="px-4 py-3 font-semibold">Climate</th>
+                  <th className="px-4 py-3 font-semibold">Veteran benefits</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((destination) => (
+                  <tr key={destination.id} className="border-t border-color-border/40 last:border-b">
+                    <td className="px-4 py-3">{destination.city}</td>
+                    <td className="px-4 py-3">{destination.state}</td>
+                    <td className="px-4 py-3">{formatLabel(destination.governorParty)}</td>
+                    <td className="px-4 py-3">{formatPercent.format(destination.salesTax / 100)}</td>
+                    <td className="px-4 py-3">{formatPercent.format(destination.incomeTax / 100)}</td>
+                    <td className="px-4 py-3">{formatLabel(destination.marijuanaStatus)}</td>
+                    <td className="px-4 py-3">{formatLabel(destination.firearmLaws)}</td>
+                    <td className="px-4 py-3">{destination.giffordScore}</td>
+                    <td className="px-4 py-3">{`${destination.costOfLiving} (${destination.costOfLivingLabel})`}</td>
+                    <td className="px-4 py-3">{`${destination.snowfall}" / yr`}</td>
+                    <td className="px-4 py-3">{`${destination.rainfall}" / yr`}</td>
+                    <td className="px-4 py-3">{destination.sunnyDays}</td>
+                    <td className="px-4 py-3">{formatUsd.format(destination.gasPrice)}</td>
+                    <td className="px-4 py-3">{destination.climate}</td>
+                    <td className="px-4 py-3">{destination.veteranBenefits}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </main>
   );
