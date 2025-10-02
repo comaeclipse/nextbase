@@ -4,20 +4,24 @@ export type MarijuanaStatus = "recreational" | "medical" | "decriminalized" | "i
 
 export type FirearmLaw = "permissive" | "moderate" | "restrictive";
 
+export type CostOfLivingLabel = "Low" | "Low/Medium" | "Medium" | "High" | "Very High";
+
 export interface Destination {
   id: string;
   city: string;
   state: string;
-  governorName: string;
   governorParty: GovernorParty;
   salesTax: number;
   incomeTax: number;
   marijuanaStatus: MarijuanaStatus;
   firearmLaws: FirearmLaw;
+  giffordScore: string;
   veteranBenefits: string;
   climate: string;
   snowfall: number;
   rainfall: number;
   gasPrice: number;
   costOfLiving: number;
+  costOfLivingLabel: CostOfLivingLabel;
+  sunnyDays: number;
 }

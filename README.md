@@ -17,31 +17,33 @@ npm run lint     # lint the project
 
 ## Data Source
 
-Destinations are stored in `src/data/destinations.json`. Each record uses the following schema:
+Destinations are stored in `src/data/destinations.json`. Each record uses the following shape:
 
 ```json
 {
-  "id": "houston-tx",
+  "id": "houston-texas",
   "city": "Houston",
   "state": "Texas",
-  "governorName": "Greg Abbott",
   "governorParty": "republican",
   "salesTax": 8.25,
   "incomeTax": 0,
   "marijuanaStatus": "medical",
   "firearmLaws": "permissive",
+  "giffordScore": "F",
   "veteranBenefits": "Partial property tax reduction for eligible veterans and surviving spouses.",
   "climate": "Humid subtropical with roughly 204 sunny days per year.",
   "snowfall": 15,
   "rainfall": 47,
   "gasPrice": 2.74,
-  "costOfLiving": 60.6
+  "costOfLiving": 85,
+  "costOfLivingLabel": "Low/Medium",
+  "sunnyDays": 204
 }
 ```
 
 ### Updating Destinations
 
-The dataset is static. Edit `src/data/destinations.json` directly and commit the changes whenever you need to add, update, or remove locations.
+The dataset is static. Edit `src/data/destinations.json` directly and commit the changes whenever you need to add, update, or remove locations. To regenerate the file from the provided CSV, run `python scripts/import_locations.py`.
 
 ## API
 

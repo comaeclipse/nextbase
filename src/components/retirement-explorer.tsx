@@ -188,11 +188,11 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                     {destination.city}, {destination.state}
                   </h3>
                   <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    Governor {destination.governorName} - {formatLabel(destination.governorParty)}
+                    Governor party: {formatLabel(destination.governorParty)}
                   </p>
                 </div>
                 <span className="badge-soft">
-                  COL {destination.costOfLiving}
+                  COL {destination.costOfLivingLabel} ({destination.costOfLiving})
                 </span>
               </header>
               <dl className="grid grid-cols-2 gap-3 text-xs">
@@ -200,11 +200,17 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                 <Stat label="Income tax" value={formatPercent.format(destination.incomeTax / 100)} />
                 <Stat label="Marijuana" value={formatLabel(destination.marijuanaStatus)} />
                 <Stat label="Firearm laws" value={formatLabel(destination.firearmLaws)} />
-                <Stat label="Climate" value={destination.climate} />
+                <Stat label="Gifford grade" value={destination.giffordScore} />
+                <Stat label="Cost of living" value={`${destination.costOfLiving} (${destination.costOfLivingLabel})`} />
                 <Stat label="Snowfall" value={`${destination.snowfall}" / yr`} />
                 <Stat label="Rainfall" value={`${destination.rainfall}" / yr`} />
+                <Stat label="Sunny days" value={`${destination.sunnyDays} days`} />
                 <Stat label="Gas price" value={formatUsd.format(destination.gasPrice)} />
               </dl>
+              <div className="rounded-xl border border-transparent bg-[color-mix(in srgb,var(--surface-elevated) 88%, transparent)] p-4 text-sm text-primary shadow-sm">
+                <p className="font-semibold text-muted-foreground">Climate</p>
+                <p className="mt-1 leading-relaxed text-sm">{destination.climate}</p>
+              </div>
               <div className="rounded-xl border border-transparent bg-[color-mix(in srgb,var(--surface-elevated) 88%, transparent)] p-4 text-sm text-primary shadow-sm">
                 <p className="font-semibold text-muted-foreground">Veteran benefits</p>
                 <p className="mt-1 leading-relaxed text-sm">{destination.veteranBenefits}</p>
@@ -259,11 +265,3 @@ function formatLabel(value: string) {
     .map((fragment) => fragment.charAt(0).toUpperCase() + fragment.slice(1))
     .join(" ");
 }
-
-
-
-
-
-
-
-
