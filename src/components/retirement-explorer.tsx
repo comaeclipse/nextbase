@@ -19,6 +19,8 @@ const formatPercent = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
+const DEFAULT_VETERAN_BENEFIT = "No state-specific veteran benefit noted.";
+
 type RetirementExplorerProps = {
   destinations: Destination[];
 };
@@ -280,8 +282,8 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                     <td className="px-4 py-3">{`${destination.rainfall}" / yr`}</td>
                     <td className="px-4 py-3">{destination.sunnyDays}</td>
                     <td className="px-4 py-3">{formatUsd.format(destination.gasPrice)}</td>
-                    <td className="px-4 py-3">{destination.climate}</td>
-                    <td className="px-4 py-3">{destination.veteranBenefits}</td>
+                    <td className="px-4 py-3">{formatClimateSummary(destination.climate)}</td>
+                    <td className="px-4 py-3">{hasCustomVeteranBenefit(destination.veteranBenefits) ? "Yes" : "No"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -330,3 +332,13 @@ function formatLabel(value: string) {
     .map((fragment) => fragment.charAt(0).toUpperCase() + fragment.slice(1))
     .join(" ");
 }
+function hasCustomVeteranBenefit(benefit: string) {
+  const trimmed = benefit.trim();
+  return trimmed.length > 0 && trimmed !== DEFAULT_VETERAN_BENEFIT;
+}
+
+function formatClimateSummary(climate: string) {
+  const summary = climate.split(' with ')[0]?.trim();
+  return summary || climate;
+}
+
