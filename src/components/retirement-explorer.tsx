@@ -72,7 +72,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
     return (
       <main className="mx-auto flex min-h-[70vh] max-w-4xl flex-col items-center justify-center gap-6 px-4 text-center">
         <ThemeToggle />
-        <h1 className="text-3xl font-semibold text-primary">No destinations yet</h1>
+        <h1 className="text-3xl font-semibold text-gradient">No destinations yet</h1>
         <p className="max-w-lg text-sm text-muted-foreground">
           Add destinations from the admin dashboard to see veteran benefit insights, taxes, climate data, and cost of living in this explorer.
         </p>
@@ -84,7 +84,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
     <main className="mx-auto max-w-6xl space-y-8 px-4 py-10">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-primary">Veteran relocation insights</h1>
+          <h1 className="text-3xl font-semibold text-gradient">Veteran relocation insights</h1>
           <p className="text-sm text-muted-foreground">
             Compare taxes, benefits, climate, and everyday costs across the destinations in your JSON data store.
           </p>
@@ -92,7 +92,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
         <ThemeToggle />
       </header>
 
-      <section className="grid grid-cols-1 gap-4 rounded-2xl border border-color-border/60 bg-surface p-6 shadow-sm md:grid-cols-4">
+      <section className="glass-panel grid grid-cols-1 gap-4 p-6 md:grid-cols-4">
         <FilterBlock label="Search">
           <input
             type="search"
@@ -144,7 +144,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
             ))}
           </select>
         </FilterBlock>
-        <FilterBlock className="md:col-span-2" label={`Cost of living = ${maxCost}`}>
+        <FilterBlock className="md:col-span-2" label={`Cost of living <= ${maxCost}`}>
           <input
             type="range"
             min="0"
@@ -164,7 +164,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
               setFirearm("");
               setMaxCost(maxCostAvailable ? Math.ceil(maxCostAvailable) : 200);
             }}
-            className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-color-muted/40"
+            className="rounded-full border border-transparent bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
           >
             Reset filters
           </button>
@@ -180,7 +180,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
           {filtered.map((destination) => (
             <article
               key={destination.id}
-              className="h-full space-y-4 rounded-2xl border border-color-border/60 bg-surface p-6 shadow-sm"
+              className="glass-panel grid-outline h-full space-y-4 p-6"
             >
               <header className="flex items-baseline justify-between gap-3">
                 <div>
@@ -191,7 +191,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                     Governor {destination.governorName} - {formatLabel(destination.governorParty)}
                   </p>
                 </div>
-                <span className="rounded-full bg-color-muted/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                <span className="badge-soft">
                   COL {destination.costOfLiving}
                 </span>
               </header>
@@ -205,14 +205,14 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                 <Stat label="Rainfall" value={`${destination.rainfall}" / yr`} />
                 <Stat label="Gas price" value={formatUsd.format(destination.gasPrice)} />
               </dl>
-              <div className="rounded-xl border border-color-border/40 bg-color-muted/30 p-4 text-sm text-primary">
+              <div className="rounded-xl border border-transparent bg-[color-mix(in srgb,var(--surface-elevated) 88%, transparent)] p-4 text-sm text-primary shadow-sm">
                 <p className="font-semibold text-muted-foreground">Veteran benefits</p>
                 <p className="mt-1 leading-relaxed text-sm">{destination.veteranBenefits}</p>
               </div>
             </article>
           ))}
           {filtered.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-color-border/60 bg-color-muted/30 p-10 text-center text-sm text-muted-foreground md:col-span-2">
+            <div className="glass-panel md:col-span-2 p-10 text-center text-sm text-muted-foreground">
               No destinations match the selected filters.
             </div>
           ) : null}
@@ -230,8 +230,10 @@ type FilterBlockProps = {
 
 function FilterBlock({ label, children, className }: FilterBlockProps) {
   return (
-    <div className={`space-y-2 text-sm text-primary ${className ?? ""}`}>
-      <span className="block font-medium uppercase tracking-[0.2em] text-muted-foreground">{label}</span>
+    <div className={`card-accent space-y-3 p-4 text-sm text-primary ${className ?? ""}`}>
+      <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {label}
+      </span>
       {children}
     </div>
   );
@@ -244,7 +246,7 @@ type StatProps = {
 
 function Stat({ label, value }: StatProps) {
   return (
-    <div className="rounded-xl border border-color-border/40 bg-color-muted/20 px-3 py-3 text-center">
+    <div className="card-accent px-4 py-4 text-center">
       <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
       <p className="mt-1 text-sm font-semibold text-primary">{value}</p>
     </div>
@@ -257,3 +259,11 @@ function formatLabel(value: string) {
     .map((fragment) => fragment.charAt(0).toUpperCase() + fragment.slice(1))
     .join(" ");
 }
+
+
+
+
+
+
+
+

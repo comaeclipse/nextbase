@@ -15,13 +15,13 @@ export function DestinationEditor({ destination }: { destination: Destination })
   const [deleteState, deleteAction] = useFormState(deleteDestinationAction, INITIAL_STATE);
 
   return (
-    <div className="space-y-4 rounded-2xl border border-color-border/60 bg-surface p-6 shadow-sm">
+    <div className="glass-panel space-y-4 p-6">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-primary">{destination.city}, {destination.state}</h3>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{destination.id}</p>
         </div>
-        <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <span className="badge-soft">
           {formatLabel(destination.governorParty)}
         </span>
       </div>

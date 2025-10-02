@@ -23,7 +23,7 @@ export function CreateDestinationForm() {
     <form
       ref={formRef}
       action={formAction}
-      className="space-y-4 rounded-2xl border border-color-border/60 bg-surface p-6 shadow-sm"
+      className="glass-panel space-y-4 p-6"
     >
       <h2 className="text-lg font-semibold text-primary">Add destination</h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

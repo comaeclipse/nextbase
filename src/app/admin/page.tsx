@@ -43,7 +43,7 @@ export default async function AdminPage() {
         <form action={signOutAction}>
           <button
             type="submit"
-            className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-color-muted/40"
+            className="rounded-full border border-transparent bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
           >
             Sign out
           </button>
@@ -72,3 +72,4 @@ export default async function AdminPage() {
     </main>
   );
 }
+

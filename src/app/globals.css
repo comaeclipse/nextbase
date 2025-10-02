@@ -1,33 +1,33 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 :root {
   color-scheme: light;
-  --surface: #f8fafc;
-  --surface-elevated: #ffffff;
-  --surface-muted: #e2e8f0;
+  --surface: #eef2ff;
+  --surface-elevated: rgba(255, 255, 255, 0.92);
+  --surface-muted: rgba(99, 102, 241, 0.12);
   --surface-inverted: #0f172a;
   --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --accent: #38bdf8;
-  --accent-secondary: #a855f7;
-  --border: rgba(15, 23, 42, 0.08);
-  --ring: rgba(56, 189, 248, 0.45);
+  --text-secondary: #1e293b;
+  --text-muted: #475569;
+  --accent: #6366f1;
+  --accent-secondary: #22d3ee;
+  --border: rgba(99, 102, 241, 0.18);
+  --ring: rgba(99, 102, 241, 0.45);
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
   --surface: #020617;
-  --surface-elevated: #0f172a;
-  --surface-muted: rgba(51, 65, 85, 0.35);
+  --surface-elevated: rgba(15, 23, 42, 0.92);
+  --surface-muted: rgba(129, 140, 248, 0.22);
   --surface-inverted: #f8fafc;
   --text-primary: #e2e8f0;
   --text-secondary: #cbd5f5;
   --text-muted: #94a3b8;
-  --accent: #38bdf8;
-  --accent-secondary: #c084fc;
-  --border: rgba(148, 163, 184, 0.16);
-  --ring: rgba(56, 189, 248, 0.55);
+  --accent: #818cf8;
+  --accent-secondary: #22d3ee;
+  --border: rgba(148, 163, 184, 0.2);
+  --ring: rgba(34, 211, 238, 0.55);
 }
 
 @theme inline {
@@ -41,9 +41,9 @@
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-secondary: var(--accent-secondary);
-  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.12);
-  --shadow-soft-dark: 0 28px 60px rgba(2, 6, 23, 0.45);
-  --radius-lg: 1rem;
+  --shadow-soft: 0 30px 70px rgba(15, 23, 42, 0.14);
+  --shadow-soft-dark: 0 40px 90px rgba(2, 6, 23, 0.55);
+  --radius-lg: 1.25rem;
 }
 
 * {
@@ -53,28 +53,52 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--surface);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface) 85%, transparent) 0%, color-mix(in srgb, var(--accent) 18%, transparent) 100%),
+    var(--surface);
   color: var(--text-primary);
   font-family: var(--font-geist-sans, "Inter", system-ui, -apple-system, sans-serif);
   text-rendering: optimizeLegibility;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(600px circle at 12% 15%, color-mix(in srgb, var(--accent) 28%, transparent) 0%, transparent 70%),
+    radial-gradient(800px circle at 85% 10%, color-mix(in srgb, var(--accent-secondary) 22%, transparent) 0%, transparent 70%),
+    radial-gradient(900px circle at 30% 90%, color-mix(in srgb, var(--accent) 18%, transparent) 0%, transparent 75%);
+  opacity: 0.75;
+}
+
+[data-theme="dark"] body::before {
+  opacity: 0.55;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
   color: var(--surface-inverted);
 }
 
 .glass-panel {
-  background: color-mix(in srgb, var(--surface-elevated) 75%, transparent);
-  border-radius: 1.25rem;
-  border: 1px solid var(--border);
-  backdrop-filter: saturate(1.4) blur(18px);
+  background: color-mix(in srgb, var(--surface-elevated) 90%, transparent);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  backdrop-filter: saturate(1.4) blur(24px);
   box-shadow: var(--shadow-soft);
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
 [data-theme="dark"] .glass-panel {
-  background: color-mix(in srgb, rgba(15, 23, 42, 0.75) 80%, transparent);
+  background: color-mix(in srgb, rgba(15, 23, 42, 0.86) 85%, transparent);
   box-shadow: var(--shadow-soft-dark);
+}
+
+.glass-panel:hover {
+  transform: translateY(-2px);
 }
 
 .text-gradient {
@@ -90,9 +114,9 @@ body {
 .grid-outline::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border-radius: calc(var(--radius-lg) + 6px);
-  border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
   opacity: 0;
   transition: opacity 250ms ease, transform 250ms ease;
   transform: scale(0.96);
@@ -107,14 +131,36 @@ body {
 
 .card-accent {
   border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-  background: color-mix(in srgb, var(--surface-elevated) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 90%, transparent) 10%, color-mix(in srgb, var(--accent) 14%, transparent) 100%);
   transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
 .card-accent:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-soft);
+}
+
+.badge-soft {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-theme="dark"] .badge-soft {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.shadow-ambient {
+  box-shadow: 0 35px 60px rgba(15, 23, 42, 0.18);
 }
 
 @media (max-width: 1024px) {

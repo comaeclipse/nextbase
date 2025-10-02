@@ -10,7 +10,7 @@ export function AdminLoginForm() {
   const [state, formAction] = useFormState(authenticateAction, INITIAL_STATE);
 
   return (
-    <div className="mx-auto mt-16 max-w-md rounded-2xl border border-color-border/60 bg-surface px-8 py-10 shadow-lg">
+    <div className="mx-auto mt-16 max-w-md glass-panel px-8 py-10">
       <h1 className="text-2xl font-semibold text-primary">Admin Sign In</h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Enter the admin token to manage destinations.
@@ -43,3 +43,4 @@ export function AdminLoginForm() {
     </div>
   );
 }
+
