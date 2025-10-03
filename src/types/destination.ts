@@ -1,4 +1,4 @@
-export type GovernorParty = "democrat" | "republican" | "independent" | "nonpartisan";
+﻿export type GovernorParty = "democrat" | "republican" | "independent" | "nonpartisan";
 
 export type MarijuanaStatus = "recreational" | "medical" | "decriminalized" | "illegal";
 
@@ -11,6 +11,8 @@ export interface Destination {
   city: string;
   state: string;
   governorParty: GovernorParty;
+  population: number;
+  lgbtqScore: number;
   salesTax: number;
   incomeTax: number;
   marijuanaStatus: MarijuanaStatus;

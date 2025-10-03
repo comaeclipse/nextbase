@@ -1,4 +1,4 @@
-# Veterans Relocation Explorer
+﻿# Veterans Relocation Explorer
 
 A Next.js app that helps veterans compare relocation destinations across taxes, climate, cost of living, and state-level benefits. The app no longer depends on Postgres/Prisma; data now lives in a checked-in JSON file that is easy to maintain without a database.
 
@@ -25,17 +25,19 @@ Destinations are stored in `src/data/destinations.json`. Each record uses the fo
   "city": "Houston",
   "state": "Texas",
   "governorParty": "republican",
+  "population": 7122240,
+  "lgbtqScore": 103,
   "salesTax": 8.25,
   "incomeTax": 0,
   "marijuanaStatus": "medical",
   "firearmLaws": "permissive",
   "giffordScore": "F",
-  "veteranBenefits": "Partial property tax reduction for eligible veterans and surviving spouses.",
+  "veteranBenefits": "Partial property tax reduction",
   "climate": "Humid subtropical with roughly 204 sunny days per year.",
   "snowfall": 15,
   "rainfall": 47,
   "gasPrice": 2.74,
-  "costOfLiving": 85,
+  "costOfLiving": 94,
   "costOfLivingLabel": "Low/Medium",
   "sunnyDays": 204
 }
