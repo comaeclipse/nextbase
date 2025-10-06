@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -251,13 +251,18 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                 <tr>
                   <th className="px-4 py-3 font-semibold">City</th>
                   <th className="px-4 py-3 font-semibold">State</th>
-                  <th className="px-4 py-3 font-semibold">Party</th>
+                  <th className="px-4 py-3 font-semibold">State color</th>
+                  <th className="px-4 py-3 font-semibold">Trend</th>
                   <th className="px-4 py-3 font-semibold">Sales tax</th>
                   <th className="px-4 py-3 font-semibold">Income tax</th>
+                  <th className="px-4 py-3 font-semibold">COL</th>
+                  <th className="px-4 py-3 font-semibold">TCI</th>
+                  <th className="px-4 py-3 font-semibold">VA clinic</th>
+                  <th className="px-4 py-3 font-semibold">Winter low</th>
+                  <th className="px-4 py-3 font-semibold">Summer high</th>
                   <th className="px-4 py-3 font-semibold">Marijuana</th>
                   <th className="px-4 py-3 font-semibold">Firearm</th>
                   <th className="px-4 py-3 font-semibold">Gifford</th>
-                  <th className="px-4 py-3 font-semibold">COL</th>
                   <th className="px-4 py-3 font-semibold">Snowfall</th>
                   <th className="px-4 py-3 font-semibold">Rainfall</th>
                   <th className="px-4 py-3 font-semibold">Sunny days</th>
@@ -271,13 +276,18 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                   <tr key={destination.id} className="border-t border-color-border/40 last:border-b">
                     <td className="px-4 py-3">{destination.city}</td>
                     <td className="px-4 py-3">{destination.state}</td>
-                    <td className="px-4 py-3">{formatLabel(destination.governorParty)}</td>
+                    <td className="px-4 py-3">{formatStateColor(destination.stateParty)}</td>
+                    <td className="px-4 py-3">{destination.electionChange || "N/A"}</td>
                     <td className="px-4 py-3">{formatPercent.format(destination.salesTax / 100)}</td>
                     <td className="px-4 py-3">{formatPercent.format(destination.incomeTax / 100)}</td>
+                    <td className="px-4 py-3">{`${destination.costOfLiving} (${destination.costOfLivingLabel})`}</td>
+                    <td className="px-4 py-3">{destination.tciScore || "N/A"}</td>
+                    <td className="px-4 py-3">{destination.vaSupport ? "Yes" : "No"}</td>
+                    <td className="px-4 py-3">{destination.alwScore ? `${destination.alwScore} F` : "N/A"}</td>
+                    <td className="px-4 py-3">{destination.ahsScore ? `${destination.ahsScore} F` : "N/A"}</td>
                     <td className="px-4 py-3">{formatLabel(destination.marijuanaStatus)}</td>
                     <td className="px-4 py-3">{formatLabel(destination.firearmLaws)}</td>
                     <td className="px-4 py-3">{destination.giffordScore}</td>
-                    <td className="px-4 py-3">{`${destination.costOfLiving} (${destination.costOfLivingLabel})`}</td>
                     <td className="px-4 py-3">{`${destination.snowfall}" / yr`}</td>
                     <td className="px-4 py-3">{`${destination.rainfall}" / yr`}</td>
                     <td className="px-4 py-3">{destination.sunnyDays}</td>
@@ -341,4 +351,16 @@ function formatClimateSummary(climate: string) {
   const summary = climate.split(' with ')[0]?.trim();
   return summary || climate;
 }
+function formatStateColor(party: string) {
+  const normalized = party.toLowerCase();
+  if (normalized === "republican") {
+    return "Red";
+  }
+  if (normalized === "democrat") {
+    return "Blue";
+  }
+  return formatLabel(party);
+}
+
+
 
