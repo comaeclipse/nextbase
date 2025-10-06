@@ -20,7 +20,7 @@ const formatPercent = new Intl.NumberFormat("en-US", {
 
 const DEFAULT_VETERAN_BENEFIT = "No state-specific veteran benefit noted.";
 const NATIONAL_GAS_AVERAGE = 3.13;
-type Recommendation = "mild-winters" | "near-ocean" | "snow-adventures";
+type Recommendation = "mild-winters" | "near-ocean" | "snow-adventures" | "cheap-gas";
 
 const RECOMMENDATIONS: { id: Recommendation; label: string }[] = [
   { id: "mild-winters", label: "Somewhere with mild winters" },
