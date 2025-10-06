@@ -266,7 +266,7 @@ function buildFeaturePills(destination: Destination): FeaturePill[] {
     { label: "Climate", value: formatClimateSummary(destination.climate) },
     { label: "Snow", value: destination.snowfall ? `${destination.snowfall}"/yr` : "N/A" },
     { label: "Sun", value: `${destination.sunnyDays} days` },
-    { label: "Gas", value: destination.gasPrice <= NATIONAL_GAS_AVERAGE ? "Cheaper" : "Expensive" },
+    { label: "Gas", value: `${formatUsd.format(destination.gasPrice)} (${destination.gasPrice <= NATIONAL_GAS_AVERAGE ? "Cheaper" : "Expensive"})` },
     { label: "Rain", value: destination.rainfall ? `${destination.rainfall}"/yr` : "N/A" },
     { label: "Marijuana", value: formatLabel(destination.marijuanaStatus) },
     { label: "Firearm", value: formatLabel(destination.firearmLaws) },
