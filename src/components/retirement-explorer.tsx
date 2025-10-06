@@ -1,10 +1,9 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
-import { FIREARM_OPTIONS, MARIJUANA_OPTIONS, PARTY_OPTIONS } from "@/data/destination-options";
-import type { Destination, FirearmLaw, GovernorParty, MarijuanaStatus } from "@/types/destination";
+import type { Destination } from "@/types/destination";
 
 const formatUsd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -20,44 +19,27 @@ const formatPercent = new Intl.NumberFormat("en-US", {
 });
 
 const DEFAULT_VETERAN_BENEFIT = "No state-specific veteran benefit noted.";
+type Recommendation = "mild-winters" | "near-ocean" | "snow-adventures";
+
+const RECOMMENDATIONS: { id: Recommendation; label: string }[] = [
+  { id: "mild-winters", label: "Somewhere with mild winters" },
+  { id: "near-ocean", label: "Near the ocean" },
+  { id: "snow-adventures", label: "Snow adventures" },
+];
+
 
 type RetirementExplorerProps = {
   destinations: Destination[];
 };
 
 export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
-  const maxCostAvailable = useMemo(() => {
-    if (!destinations.length) {
-      return 0;
-    }
-    return Math.max(...destinations.map((destination) => destination.costOfLiving));
-  }, [destinations]);
-
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "table">("grid");
-  const [party, setParty] = useState<GovernorParty | "">("");
-  const [marijuana, setMarijuana] = useState<MarijuanaStatus | "">("");
-  const [firearm, setFirearm] = useState<FirearmLaw | "">("");
-  const [maxCost, setMaxCost] = useState(() => (maxCostAvailable ? Math.ceil(maxCostAvailable) : 200));
-
-  useEffect(() => {
-    if (maxCostAvailable) {
-      setMaxCost(Math.ceil(maxCostAvailable));
-    }
-  }, [maxCostAvailable]);
+  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
 
   const filtered = useMemo(() => {
     return destinations.filter((destination) => {
-      if (party && destination.governorParty !== party) {
-        return false;
-      }
-      if (marijuana && destination.marijuanaStatus !== marijuana) {
-        return false;
-      }
-      if (firearm && destination.firearmLaws !== firearm) {
-        return false;
-      }
-      if (Number.isFinite(maxCost) && destination.costOfLiving > maxCost) {
+      if (recommendation && !matchesRecommendation(destination, recommendation)) {
         return false;
       }
       if (search) {
@@ -69,7 +51,12 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
       }
       return true;
     });
-  }, [destinations, party, marijuana, firearm, maxCost, search]);
+  }, [destinations, recommendation, search]);
+
+  const handleRecommendationClick = (id: Recommendation) => {
+    setRecommendation((current) => (current === id ? null : id));
+  };
+
 
   if (destinations.length === 0) {
     return (
@@ -113,82 +100,44 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
         </div>
       </header>
 
-      <section className="glass-panel grid grid-cols-1 gap-4 p-6 md:grid-cols-4">
-        <FilterBlock label="Search">
+      <section className="glass-panel space-y-5 p-6">
+        <div className="space-y-2">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">I want to live...</p>
+          <h2 className="text-2xl font-semibold text-primary">Pick the vibe that fits your next move</h2>
+          <p className="text-sm text-muted-foreground">Choose a quick filter below or search for a city, state, or benefit detail.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {RECOMMENDATIONS.map((option) => {
+            const isActive = recommendation === option.id;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => handleRecommendationClick(option.id)}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${isActive ? "bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] text-white shadow-sm" : "border-color-border/60 text-primary hover:bg-color-muted/30"}`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search by city, state, or benefit"
-            className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
+            className="flex-1 rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
           />
-        </FilterBlock>
-        <FilterBlock label="Governor party">
-          <select
-            value={party}
-            onChange={(event) => setParty(event.target.value as GovernorParty | "")}
-            className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
-          >
-            <option value="">Any</option>
-            {PARTY_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </FilterBlock>
-        <FilterBlock label="Marijuana status">
-          <select
-            value={marijuana}
-            onChange={(event) => setMarijuana(event.target.value as MarijuanaStatus | "")}
-            className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
-          >
-            <option value="">Any</option>
-            {MARIJUANA_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </FilterBlock>
-        <FilterBlock label="Firearm laws">
-          <select
-            value={firearm}
-            onChange={(event) => setFirearm(event.target.value as FirearmLaw | "")}
-            className="w-full rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
-          >
-            <option value="">Any</option>
-            {FIREARM_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </FilterBlock>
-        <FilterBlock className="md:col-span-2" label={`Cost of living <= ${maxCost}`}>
-          <input
-            type="range"
-            min="0"
-            max={Math.max(10, Math.ceil(maxCostAvailable || 200))}
-            value={maxCost}
-            onChange={(event) => setMaxCost(Number(event.target.value))}
-            className="w-full accent-accent"
-          />
-        </FilterBlock>
-        <div className="md:col-span-2 flex items-end justify-end">
-          <button
-            type="button"
-            onClick={() => {
-              setSearch("");
-              setParty("");
-              setMarijuana("");
-              setFirearm("");
-              setMaxCost(maxCostAvailable ? Math.ceil(maxCostAvailable) : 200);
-            }}
-            className="rounded-full border border-transparent bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
-          >
-            Reset filters
-          </button>
+          {recommendation ? (
+            <button
+              type="button"
+              onClick={() => setRecommendation(null)}
+              className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-color-muted/40"
+            >
+              Clear choice
+            </button>
+          ) : null}
         </div>
       </section>
 
@@ -283,8 +232,8 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                     <td className="px-4 py-3">{`${destination.costOfLiving} (${destination.costOfLivingLabel})`}</td>
                     <td className="px-4 py-3">{destination.tciScore || "N/A"}</td>
                     <td className="px-4 py-3">{destination.vaSupport ? "Yes" : "No"}</td>
-                    <td className="px-4 py-3">{destination.alwScore ? `${destination.alwScore} F` : "N/A"}</td>
-                    <td className="px-4 py-3">{destination.ahsScore ? `${destination.ahsScore} F` : "N/A"}</td>
+                    <td className="px-4 py-3">{destination.alwScore ? `${destination.alwScore}°F` : "N/A"}</td>
+                    <td className="px-4 py-3">{destination.ahsScore ? `${destination.ahsScore}°F` : "N/A"}</td>
                     <td className="px-4 py-3">{formatLabel(destination.marijuanaStatus)}</td>
                     <td className="px-4 py-3">{formatLabel(destination.firearmLaws)}</td>
                     <td className="px-4 py-3">{destination.giffordScore}</td>
@@ -302,23 +251,6 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
         )}
       </section>
     </main>
-  );
-}
-
-type FilterBlockProps = {
-  label: string;
-  children: ReactNode;
-  className?: string;
-};
-
-function FilterBlock({ label, children, className }: FilterBlockProps) {
-  return (
-    <div className={`card-accent space-y-3 p-4 text-sm text-primary ${className ?? ""}`}>
-      <span className="block text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-        {label}
-      </span>
-      {children}
-    </div>
   );
 }
 
@@ -342,15 +274,17 @@ function formatLabel(value: string) {
     .map((fragment) => fragment.charAt(0).toUpperCase() + fragment.slice(1))
     .join(" ");
 }
-function hasCustomVeteranBenefit(benefit: string) {
-  const trimmed = benefit.trim();
-  return trimmed.length > 0 && trimmed !== DEFAULT_VETERAN_BENEFIT;
-}
 
 function formatClimateSummary(climate: string) {
   const summary = climate.split(' with ')[0]?.trim();
   return summary || climate;
 }
+
+function hasCustomVeteranBenefit(benefit: string) {
+  const trimmed = benefit.trim();
+  return trimmed.length > 0 && trimmed !== DEFAULT_VETERAN_BENEFIT;
+}
+
 function formatStateColor(party: string) {
   const normalized = party.toLowerCase();
   if (normalized === "republican") {
@@ -362,5 +296,17 @@ function formatStateColor(party: string) {
   return formatLabel(party);
 }
 
-
-
+function matchesRecommendation(destination: Destination, recommendation: Recommendation) {
+  switch (recommendation) {
+    case "mild-winters":
+                    <td className="px-4 py-3">{destination.alwScore ? `${destination.alwScore}°F` : "N/A"}</td>
+    case "near-ocean": {
+      const climate = destination.climate.toLowerCase();
+      return /coast|coastal|humid subtropical|mediterranean|marine|ocean/.test(climate);
+    }
+    case "snow-adventures":
+      return destination.snowfall >= 25 || /cold|alpine|snow/.test(destination.climate.toLowerCase());
+    default:
+      return true;
+  }
+}
