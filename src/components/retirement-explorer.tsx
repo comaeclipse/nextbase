@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -197,6 +198,12 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                   <p className="font-semibold text-muted-foreground">Veteran benefits</p>
                   <p className="mt-1 leading-relaxed text-sm">{destination.veteranBenefits}</p>
                 </div>
+                <Link
+                  href={`/${destination.stateCode.toLowerCase()}/${toCitySegment(destination.city)}`}
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-accent"
+                >
+                  Learn more →
+                </Link>
               </article>
             ))}
           </div>
@@ -304,6 +311,14 @@ function formatClimateSummary(climate: string) {
 function hasCustomVeteranBenefit(benefit: string) {
   const trimmed = benefit.trim();
   return trimmed.length > 0 && trimmed !== DEFAULT_VETERAN_BENEFIT;
+}
+
+
+function toCitySegment(city: string) {
+  return city
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
 }
 
 function formatStateColor(party: string) {
