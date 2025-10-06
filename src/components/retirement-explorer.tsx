@@ -55,6 +55,12 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
     });
   }, [destinations, recommendation, search]);
 
+  const headingText =
+    recommendation === "cheap-gas"
+      ? `Showing ${filtered.length} cities where gas prices are less than the average of ${formatUsd.format(NATIONAL_GAS_AVERAGE)}.`
+      : `${filtered.length} destinations`;
+
+
   const handleRecommendationClick = (id: Recommendation) => {
     setRecommendation((current) => (current === id ? null : id));
   };
@@ -145,7 +151,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-primary">{filtered.length} destinations</h2>
+          <h2 className="text-lg font-semibold text-primary">{headingText}</h2>
           <p className="text-xs text-muted-foreground">Sorted by city name</p>
         </div>
         {filtered.length === 0 ? (
