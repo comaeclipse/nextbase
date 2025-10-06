@@ -12,14 +12,66 @@ PARTY_MAP = {
     "D": "democrat",
     "I": "independent",
     "N": "nonpartisan",
+    "M": "nonpartisan",
 }
 
-STATE_FIXES = {
-    "Tennesee": "Tennessee",
+STATE_NAMES = {
+    "AK": "Alaska",
+    "AL": "Alabama",
+    "AR": "Arkansas",
+    "AZ": "Arizona",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DC": "District of Columbia",
+    "DE": "Delaware",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "HI": "Hawaii",
+    "IA": "Iowa",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "MA": "Massachusetts",
+    "MD": "Maryland",
+    "ME": "Maine",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MO": "Missouri",
+    "MS": "Mississippi",
+    "MT": "Montana",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "NE": "Nebraska",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NV": "Nevada",
+    "NY": "New York",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PA": "Pennsylvania",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VA": "Virginia",
+    "VT": "Vermont",
+    "WA": "Washington",
+    "WI": "Wisconsin",
+    "WV": "West Virginia",
+    "WY": "Wyoming",
 }
 
 CITY_FIXES = {
     "Lousville": "Louisville",
+    "Tuscon": "Tucson",
 }
 
 DEFAULT_BENEFIT = "No state-specific veteran benefit noted."
@@ -28,6 +80,11 @@ DEFAULT_BENEFIT = "No state-specific veteran benefit noted."
 def slugify(value: str) -> str:
     cleaned = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return cleaned
+
+
+def party_from(code: str) -> str:
+    key = (code or "").strip().upper()
+    return PARTY_MAP.get(key, "independent")
 
 
 def grade_to_firearm(grade: str) -> str:
@@ -62,6 +119,18 @@ def parse_decimal(value: str) -> float:
     return round(float(value), 2)
 
 
+def parse_percent(value: str) -> float:
+    raw = (value or "").replace("%", "").strip()
+    if not raw:
+        return 0.0
+    return round(float(raw), 2)
+
+
+def parse_bool(value: str) -> bool:
+    normalized = (value or "").strip().lower()
+    return normalized in {"y", "yes", "true"}
+
+
 def classify_cost_of_living(index: int) -> str:
     if index <= 90:
         return "Low"
@@ -75,13 +144,19 @@ def classify_cost_of_living(index: int) -> str:
 
 
 def build_destination(row: dict) -> dict:
-    state = STATE_FIXES.get(row.get("State", ""), row.get("State", "")).strip()
-    city = CITY_FIXES.get(row.get("City", ""), row.get("City", "")).strip()
-    party_code = (row.get("Governor") or "").strip().upper()
-    governor_party = PARTY_MAP.get(party_code, "independent")
+    state_code = (row.get("State") or "").strip()
+    state = STATE_NAMES.get(state_code, state_code)
+    county = (row.get("County") or "").strip()
 
-    cost_raw = parse_int(row.get("COL"))
-    cost_of_living = cost_raw if cost_raw else 95
+    city_raw = (row.get("City") or "").strip()
+    city = CITY_FIXES.get(city_raw, city_raw)
+
+    state_party = party_from(row.get("StateParty"))
+    governor_party = party_from(row.get("Governor"))
+    mayor_party = party_from(row.get("Mayor"))
+
+    cost_index = parse_int(row.get("COL"))
+    cost_of_living = cost_index if cost_index else 95
     cost_of_living_label = classify_cost_of_living(cost_of_living)
 
     sunny_days = parse_int(row.get("Sun"))
@@ -93,15 +168,19 @@ def build_destination(row: dict) -> dict:
 
     veteran_benefits = (row.get("Veterans Benefits") or "").strip() or DEFAULT_BENEFIT
 
-    gifford_score = (row.get("Gifford Score") or "").strip()
+    gifford_score = (row.get("Gifford") or "").strip()
 
     destination = {
         "id": slugify(f"{city}-{state}"),
+        "stateCode": state_code,
         "city": city,
+        "county": county,
         "state": state,
+        "stateParty": state_party,
         "governorParty": governor_party,
+        "mayorParty": mayor_party,
         "population": parse_int(row.get("Population")),
-        "lgbtqScore": parse_int(row.get("LGBTQ")),
+        "density": parse_int(row.get("Density")),
         "salesTax": parse_decimal(row.get("Sales Tax")),
         "incomeTax": parse_decimal(row.get("Income")),
         "marijuanaStatus": (row.get("Marijuana") or "Unknown").strip().lower(),
@@ -111,10 +190,21 @@ def build_destination(row: dict) -> dict:
         "climate": climate,
         "snowfall": parse_decimal(row.get("Snow")),
         "rainfall": parse_decimal(row.get("Rain")),
-        "gasPrice": parse_float(row.get("Gas Price")),
+        "gasPrice": parse_float(row.get("Gas")),
         "costOfLiving": cost_of_living,
         "costOfLivingLabel": cost_of_living_label,
         "sunnyDays": sunny_days,
+        "lgbtqScore": parse_int(row.get("LGBTQ")),
+        "techHub": parse_bool(row.get("Tech")),
+        "vaSupport": parse_bool(row.get("VA")),
+        "tciScore": parse_int(row.get("TCI")),
+        "alwScore": parse_int(row.get("ALW")),
+        "ahsScore": parse_int(row.get("AHS")),
+        "election2016Winner": (row.get("2016Election") or "").strip(),
+        "election2016Percent": parse_percent(row.get("2016PresidentPercent")),
+        "election2024Winner": (row.get("2024 Election") or "").strip(),
+        "election2024Percent": parse_percent(row.get("2024PresidentPercent")),
+        "electionChange": (row.get("ElectionChange") or "").strip(),
     }
 
     return destination

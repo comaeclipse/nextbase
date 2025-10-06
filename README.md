@@ -22,11 +22,15 @@ Destinations are stored in `src/data/destinations.json`. Each record uses the fo
 ```json
 {
   "id": "houston-texas",
+  "stateCode": "TX",
   "city": "Houston",
+  "county": "Harris",
   "state": "Texas",
+  "stateParty": "republican",
   "governorParty": "republican",
+  "mayorParty": "republican",
   "population": 7122240,
-  "lgbtqScore": 103,
+  "density": 3126,
   "salesTax": 8.25,
   "incomeTax": 0,
   "marijuanaStatus": "medical",
@@ -39,7 +43,18 @@ Destinations are stored in `src/data/destinations.json`. Each record uses the fo
   "gasPrice": 2.74,
   "costOfLiving": 94,
   "costOfLivingLabel": "Low/Medium",
-  "sunnyDays": 204
+  "sunnyDays": 204,
+  "lgbtqScore": 103,
+  "techHub": true,
+  "vaSupport": false,
+  "tciScore": 35,
+  "alwScore": 44,
+  "ahsScore": 92,
+  "election2016Winner": "Trump",
+  "election2016Percent": 48,
+  "election2024Winner": "Trump",
+  "election2024Percent": 51,
+  "electionChange": "3% more Republican"
 }
 ```
 
