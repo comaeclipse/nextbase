@@ -114,7 +114,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                 key={option.id}
                 type="button"
                 onClick={() => handleRecommendationClick(option.id)}
-                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${isActive ? "bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] text-white shadow-sm" : "border-color-border/60 text-primary hover:bg-color-muted/30"}`}
+                className={`rounded-full border border-color-border/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] transition ${isActive ? "bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] text-white shadow-sm" : "text-primary hover:bg-color-muted/30"}`}
               >
                 {option.label}
               </button>
@@ -170,18 +170,17 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                     COL {destination.costOfLivingLabel} ({destination.costOfLiving})
                   </span>
                 </header>
-                <dl className="grid grid-cols-2 gap-3 text-xs">
-                  <Stat label="Sales tax" value={formatPercent.format(destination.salesTax / 100)} />
-                  <Stat label="Income tax" value={formatPercent.format(destination.incomeTax / 100)} />
-                  <Stat label="Marijuana" value={formatLabel(destination.marijuanaStatus)} />
-                  <Stat label="Firearm laws" value={formatLabel(destination.firearmLaws)} />
-                  <Stat label="Gifford grade" value={destination.giffordScore} />
-                  <Stat label="Cost of living" value={`${destination.costOfLiving} (${destination.costOfLivingLabel})`} />
-                  <Stat label="Snowfall" value={`${destination.snowfall}" / yr`} />
-                  <Stat label="Rainfall" value={`${destination.rainfall}" / yr`} />
-                  <Stat label="Sunny days" value={`${destination.sunnyDays} days`} />
-                  <Stat label="Gas price" value={formatUsd.format(destination.gasPrice)} />
-                </dl>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {buildFeaturePills(destination).map((pill) => (
+                    <span
+                      key={`${destination.id}-${pill.label}`}
+                      className="inline-flex items-center gap-1 rounded-full border border-color-border/60 bg-color-muted/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary"
+                    >
+                      <span className="text-muted-foreground">{pill.label}</span>
+                      <span>{pill.value}</span>
+                    </span>
+                  ))}
+                </div>
                 <div className="rounded-xl border border-transparent bg-[color-mix(in srgb,var(--surface-elevated) 88%, transparent)] p-4 text-sm text-primary shadow-sm">
                   <p className="font-semibold text-muted-foreground">Climate</p>
                   <p className="mt-1 leading-relaxed text-sm">{destination.climate}</p>
@@ -211,7 +210,6 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                   <th className="px-4 py-3 font-semibold">Summer high</th>
                   <th className="px-4 py-3 font-semibold">Marijuana</th>
                   <th className="px-4 py-3 font-semibold">Firearm</th>
-                  <th className="px-4 py-3 font-semibold">Gifford</th>
                   <th className="px-4 py-3 font-semibold">Snowfall</th>
                   <th className="px-4 py-3 font-semibold">Rainfall</th>
                   <th className="px-4 py-3 font-semibold">Sunny days</th>
@@ -236,7 +234,6 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
                     <td className="px-4 py-3">{destination.ahsScore ? `${destination.ahsScore}°F` : "N/A"}</td>
                     <td className="px-4 py-3">{formatLabel(destination.marijuanaStatus)}</td>
                     <td className="px-4 py-3">{formatLabel(destination.firearmLaws)}</td>
-                    <td className="px-4 py-3">{destination.giffordScore}</td>
                     <td className="px-4 py-3">{`${destination.snowfall}" / yr`}</td>
                     <td className="px-4 py-3">{`${destination.rainfall}" / yr`}</td>
                     <td className="px-4 py-3">{destination.sunnyDays}</td>
@@ -254,18 +251,34 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
   );
 }
 
-type StatProps = {
+type FeaturePill = {
   label: string;
   value: string;
 };
 
-function Stat({ label, value }: StatProps) {
-  return (
-    <div className="card-accent px-4 py-4 text-center">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-primary">{value}</p>
-    </div>
-  );
+function buildFeaturePills(destination: Destination): FeaturePill[] {
+  const pills: FeaturePill[] = [
+    { label: "Sales", value: formatPercent.format(destination.salesTax / 100) },
+    { label: "Income", value: formatPercent.format(destination.incomeTax / 100) },
+    { label: "COL", value: `${destination.costOfLiving} (${destination.costOfLivingLabel})` },
+    { label: "Climate", value: formatClimateSummary(destination.climate) },
+    { label: "Snow", value: destination.snowfall ? `${destination.snowfall}"/yr` : "N/A" },
+    { label: "Sun", value: `${destination.sunnyDays} days` },
+    { label: "Gas", value: formatUsd.format(destination.gasPrice) },
+    { label: "Rain", value: destination.rainfall ? `${destination.rainfall}"/yr` : "N/A" },
+    { label: "Marijuana", value: formatLabel(destination.marijuanaStatus) },
+    { label: "Firearm", value: formatLabel(destination.firearmLaws) },
+  ];
+
+  pills.push({ label: "VA clinic", value: destination.vaSupport ? "Yes" : "No" });
+  pills.push({ label: "Tech hub", value: destination.techHub ? "Yes" : "No" });
+  pills.push({ label: "LGBTQ+", value: destination.lgbtqScore ? destination.lgbtqScore.toString() : "N/A" });
+
+  if (destination.tciScore) {
+    pills.push({ label: "Crime index", value: destination.tciScore.toString() });
+  }
+
+  return pills.slice(0, 10);
 }
 
 function formatLabel(value: string) {
@@ -299,7 +312,7 @@ function formatStateColor(party: string) {
 function matchesRecommendation(destination: Destination, recommendation: Recommendation) {
   switch (recommendation) {
     case "mild-winters":
-                    <td className="px-4 py-3">{destination.alwScore ? `${destination.alwScore}°F` : "N/A"}</td>
+      return destination.alwScore ? destination.alwScore >= 30 : false;
     case "near-ocean": {
       const climate = destination.climate.toLowerCase();
       return /coast|coastal|humid subtropical|mediterranean|marine|ocean/.test(climate);
