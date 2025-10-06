@@ -18,6 +18,10 @@ function getPreferredTheme(): Theme {
   if (typeof window === "undefined") {
     return "light";
   }
+  const datasetTheme = document.documentElement.dataset.theme as Theme | undefined;
+  if (datasetTheme === "light" || datasetTheme === "dark") {
+    return datasetTheme;
+  }
   const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
   if (stored === "light" || stored === "dark") {
     return stored;

@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -26,6 +27,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
+      <Script id="theme-init" strategy="beforeInteractive">
+        {`(() => {
+          try {
+            const storageKey = "veterans-retirement-theme";
+            const root = document.documentElement;
+            if (!root) {
+              return;
+            }
+            const stored = window.localStorage.getItem(storageKey);
+            const theme = stored === "light" || stored === "dark"
+              ? stored
+              : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            root.dataset.theme = theme;
+          } catch (error) {
+            // ignore
+          }
+        })();`}
+      </Script>
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-surface text-primary antialiased transition-colors`}
       >
