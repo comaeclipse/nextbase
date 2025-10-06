@@ -19,12 +19,14 @@ const formatPercent = new Intl.NumberFormat("en-US", {
 });
 
 const DEFAULT_VETERAN_BENEFIT = "No state-specific veteran benefit noted.";
+const NATIONAL_GAS_AVERAGE = 3.13;
 type Recommendation = "mild-winters" | "near-ocean" | "snow-adventures";
 
 const RECOMMENDATIONS: { id: Recommendation; label: string }[] = [
   { id: "mild-winters", label: "Somewhere with mild winters" },
   { id: "near-ocean", label: "Near the ocean" },
   { id: "snow-adventures", label: "Snow adventures" },
+  { id: "cheap-gas", label: "Cheaper gas" },
 ];
 
 
@@ -264,7 +266,7 @@ function buildFeaturePills(destination: Destination): FeaturePill[] {
     { label: "Climate", value: formatClimateSummary(destination.climate) },
     { label: "Snow", value: destination.snowfall ? `${destination.snowfall}"/yr` : "N/A" },
     { label: "Sun", value: `${destination.sunnyDays} days` },
-    { label: "Gas", value: formatUsd.format(destination.gasPrice) },
+    { label: "Gas", value: destination.gasPrice <= NATIONAL_GAS_AVERAGE ? "Cheaper" : "Expensive" },
     { label: "Rain", value: destination.rainfall ? `${destination.rainfall}"/yr` : "N/A" },
     { label: "Marijuana", value: formatLabel(destination.marijuanaStatus) },
     { label: "Firearm", value: formatLabel(destination.firearmLaws) },
@@ -319,6 +321,8 @@ function matchesRecommendation(destination: Destination, recommendation: Recomme
     }
     case "snow-adventures":
       return destination.snowfall >= 25 || /cold|alpine|snow/.test(destination.climate.toLowerCase());
+    case "cheap-gas":
+      return destination.gasPrice <= NATIONAL_GAS_AVERAGE;
     default:
       return true;
   }
