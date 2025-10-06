@@ -16,7 +16,7 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 function getPreferredTheme(): Theme {
   if (typeof window === "undefined") {
-    return "light";
+    return "dark";
   }
   const datasetTheme = document.documentElement.dataset.theme as Theme | undefined;
   if (datasetTheme === "light" || datasetTheme === "dark") {
@@ -26,7 +26,7 @@ function getPreferredTheme(): Theme {
   if (stored === "light" || stored === "dark") {
     return stored;
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "dark";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

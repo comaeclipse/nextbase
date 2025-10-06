@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
+    <html lang="en" className="h-full" data-theme="dark" suppressHydrationWarning>
       <Script id="theme-init" strategy="beforeInteractive">
         {`(() => {
           try {
@@ -38,7 +38,7 @@ export default function RootLayout({
             const stored = window.localStorage.getItem(storageKey);
             const theme = stored === "light" || stored === "dark"
               ? stored
-              : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+              : "dark";
             root.dataset.theme = theme;
           } catch (error) {
             // ignore
