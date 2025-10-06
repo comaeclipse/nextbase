@@ -143,7 +143,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-primary">{filtered.length} destinations</h2>
+          <h2 className="text-lg font-semibold text-primary">{filtered.length} destinations</h2>
           <p className="text-xs text-muted-foreground">Sorted by city name</p>
         </div>
         {filtered.length === 0 ? (
@@ -151,15 +151,15 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
             No destinations match the selected filters.
           </div>
         ) : view === "grid" ? (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((destination) => (
               <article
                 key={destination.id}
-                className="glass-panel grid-outline h-full space-y-4 p-6"
+                className="glass-panel grid-outline h-full space-y-3 p-5"
               >
                 <header className="flex items-baseline justify-between gap-3">
                   <div>
-                    <h3 className="text-xl font-semibold text-primary">
+                    <h3 className="text-lg font-semibold text-primary">
                       {destination.city}, {destination.state}
                     </h3>
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
