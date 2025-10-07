@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -102,6 +102,8 @@ const TOPICS: QuizTopic[] = [
   },
 ];
 
+const MIN_ANSWERS_REQUIRED = 3;
+
 const buildInitialAnswers = (): Record<string, QuizAnswer> => {
   const entries = TOPICS.map((topic) => [topic.id, { importance: null, preference: null }]);
   return Object.fromEntries(entries) as Record<string, QuizAnswer>;
@@ -109,6 +111,7 @@ const buildInitialAnswers = (): Record<string, QuizAnswer> => {
 
 export default function QuizPage() {
   const [answers, setAnswers] = useState<Record<string, QuizAnswer>>(() => buildInitialAnswers());
+  const [showResults, setShowResults] = useState(false);
 
   const completed = useMemo(() => {
     return TOPICS.reduce(
@@ -116,6 +119,14 @@ export default function QuizPage() {
       0,
     );
   }, [answers]);
+
+  const readyForResults = completed >= MIN_ANSWERS_REQUIRED;
+
+  useEffect(() => {
+    if (!readyForResults) {
+      setShowResults(false);
+    }
+  }, [readyForResults]);
 
   const handleImportance = (topicId: string, value: ImportanceLevel) => {
     setAnswers((current) => ({
@@ -136,6 +147,13 @@ export default function QuizPage() {
 
   const reset = () => {
     setAnswers(buildInitialAnswers());
+    setShowResults(false);
+  };
+
+  const handleShowResults = () => {
+    if (readyForResults) {
+      setShowResults(true);
+    }
   };
 
   const summary = useMemo(() => {
@@ -172,6 +190,11 @@ export default function QuizPage() {
     });
   }, [answers]);
 
+  const resultsButtonClassName = readyForResults
+    ? "rounded-full px-4 py-2 text-sm font-semibold text-white transition bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] shadow-sm hover:shadow-md"
+    : "rounded-full border border-dashed border-color-border/60 px-4 py-2 text-sm font-semibold text-muted-foreground transition";
+
+
   return (
     <main className="mx-auto max-w-5xl space-y-10 px-4 py-12">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -200,13 +223,24 @@ export default function QuizPage() {
             <p className="text-sm text-muted-foreground">{completed} of {TOPICS.length} topics answered</p>
             <p className="text-sm text-muted-foreground">No wrong answers - just tell the story of your ideal spot.</p>
           </div>
-          <button
-            type="button"
-            onClick={reset}
-            className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold transition hover:text-primary"
-          >
-            Reset responses
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleShowResults}
+              disabled={!readyForResults}
+              aria-disabled={!readyForResults}
+              className={resultsButtonClassName}
+            >
+              Show my results
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold transition hover:text-primary"
+            >
+              Reset responses
+            </button>
+          </div>
         </div>
         <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-color-border/40">
           <div
@@ -288,13 +322,31 @@ export default function QuizPage() {
         <p className="text-sm text-muted-foreground">
           These notes become the backbone for matching you with destinations. Adjust anytime - everything updates on the fly.
         </p>
-        <ul className="space-y-2">
-          {summary.map((item) => (
-            <li key={item.id} className="rounded-lg border border-color-border/50 bg-color-surface/40 px-4 py-3 text-sm">
-              <span className="font-semibold text-primary">{item.title}:</span> <span className="text-muted-foreground">{item.text}</span>
-            </li>
-          ))}
-        </ul>
+        {showResults ? (
+          <>
+            <ul className="space-y-2">
+              {summary.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded-lg border border-color-border/50 bg-color-surface/40 px-4 py-3 text-sm"
+                >
+                  <span className="font-semibold text-primary">{item.title}:</span>{" "}
+                  <span className="text-muted-foreground">{item.text}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold transition hover:text-primary"
+            >
+              Explore destinations
+            </Link>
+          </>
+        ) : (
+          <div className="rounded-lg border border-dashed border-color-border/60 bg-color-surface/30 px-4 py-6 text-sm text-muted-foreground">
+            Answer at least {MIN_ANSWERS_REQUIRED} topics, then press the Show my results button to generate your guidance summary.
+          </div>
+        )}
       </section>
     </main>
   );
