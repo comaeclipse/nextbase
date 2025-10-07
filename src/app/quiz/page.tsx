@@ -4,206 +4,141 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import type { Destination } from "@/types/destination";
 
-type ImportanceLevel = "low" | "medium" | "high";
+type ChoiceValue = "not" | "somewhat" | "extreme";
 
-type PreferenceOption = {
-  value: string;
+type Choice = {
+  value: ChoiceValue;
   label: string;
   helper: string;
 };
 
-type QuizTopic = {
-  id: string;
-  title: string;
-  prompt: string;
-  description: string;
-  preferencePrompt?: string;
-  options?: PreferenceOption[];
-};
-
-type QuizAnswer = {
-  importance: ImportanceLevel | null;
-  preference: string | null;
-};
-
-const IMPORTANCE_CHOICES: { value: ImportanceLevel; label: string; helper: string }[] = [
-  { value: "low", label: "Not a priority", helper: "I can adapt either way." },
-  { value: "medium", label: "Nice to have", helper: "It would make a difference." },
-  { value: "high", label: "Essential", helper: "I absolutely need this." },
-];
-
-const TOPICS: QuizTopic[] = [
+const CHOICES: Choice[] = [
   {
-    id: "firearmLaws",
-    title: "Local gun laws",
-    prompt: "How important is it that the state aligns with your outlook on gun ownership?",
-    description:
-      "Our data tracks whether firearm regulations are permissive, moderate, or restrictive in each destination.",
-    preferencePrompt: "Which style feels right for you?",
-    options: [
-      { value: "permissive", label: "More permissive", helper: "Prefer lenient carry and ownership rules." },
-      { value: "moderate", label: "Some guardrails", helper: "Comfortable with a middle ground." },
-      { value: "restrictive", label: "Stricter rules", helper: "Want stronger controls in place." },
-    ],
+    value: "not",
+    label: "Not at all important",
+    helper: "Other factors matter more to me than the Second Amendment.",
   },
   {
-    id: "marijuanaStatus",
-    title: "Marijuana access",
-    prompt: "How much does legal access to cannabis matter in your next home state?",
-    description:
-      "We categorize each location by recreational approval, medical programs, decriminalization, or prohibitions.",
-    preferencePrompt: "What would you hope to find?",
-    options: [
-      { value: "recreational", label: "Recreational", helper: "Full access for adults." },
-      { value: "medical", label: "Medical only", helper: "Comfortable with a card-based program." },
-      { value: "decriminalized", label: "Decriminalized", helper: "Low enforcement priority is enough." },
-      { value: "illegal", label: "No access needed", helper: "Access is not important to me." },
-    ],
+    value: "somewhat",
+    label: "Somewhat important",
+    helper: "It plays a role, but I will trade it for the right location.",
   },
   {
-    id: "lgbtqScore",
-    title: "LGBTQ+ inclusion",
-    prompt: "How important is a strong LGBTQ+ safety and inclusion score to you or your family?",
-    description:
-      "Destinations include an LGBTQ+ equality index so you can gauge local protections and community support.",
-    preferencePrompt: "Pick the atmosphere that feels most comfortable.",
-    options: [
-      { value: "high", label: "High scoring", helper: "Looking for inclusive policies and culture." },
-      { value: "medium", label: "Balanced", helper: "Open to somewhere with mixed scores." },
-      { value: "flexible", label: "Flexible", helper: "Score is less of a deciding factor." },
-    ],
-  },
-  {
-    id: "climate",
-    title: "Daily climate",
-    prompt: "How strongly do you feel about the temperature and weather where you retire?",
-    description:
-      "Weather profiles highlight rainfall, snowfall, sunshine, and climate summaries for each destination.",
-    preferencePrompt: "Lean warmer, cooler, or keep it mild?",
-    options: [
-      { value: "warm", label: "Warm and sunny", helper: "Bring on the heat and sunshine." },
-      { value: "mild", label: "Mild seasons", helper: "Prefer balanced seasons without extremes." },
-      { value: "cool", label: "Cool and crisp", helper: "I enjoy chillier climates and snow." },
-    ],
-  },
-  {
-    id: "lifestyle",
-    title: "Lifestyle pace",
-    prompt: "How much does the everyday pace of life influence your decision?",
-    description:
-      "We track markers like tech hub status, density, and local culture to hint at city energy versus slower living.",
-    preferencePrompt: "What rhythm sounds right?",
-    options: [
-      { value: "urban", label: "Urban or metro", helper: "Restaurants, tech jobs, and nightlife." },
-      { value: "suburban", label: "Suburban mix", helper: "Access to amenities with room to breathe." },
-      { value: "slow", label: "Slow living", helper: "Quieter towns, nature, and open space." },
-    ],
+    value: "extreme",
+    label: "Extremely important",
+    helper: "I want the strongest possible protections.",
   },
 ];
 
-const MIN_ANSWERS_REQUIRED = 3;
+const RELAXED_GIFFORD_GRADES = new Set(["F", "D", "C"]);
 
-const buildInitialAnswers = (): Record<string, QuizAnswer> => {
-  const entries = TOPICS.map((topic) => [topic.id, { importance: null, preference: null }]);
-  return Object.fromEntries(entries) as Record<string, QuizAnswer>;
-};
+function isAbortError(error: unknown): error is DOMException {
+  return typeof DOMException !== "undefined" && error instanceof DOMException && error.name === "AbortError";
+}
 
 export default function QuizPage() {
-  const [answers, setAnswers] = useState<Record<string, QuizAnswer>>(() => buildInitialAnswers());
+  const [selection, setSelection] = useState<ChoiceValue | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
 
-  const completed = useMemo(() => {
-    return TOPICS.reduce(
-      (count, topic) => (answers[topic.id]?.importance ? count + 1 : count),
-      0,
-    );
-  }, [answers]);
-
-  const readyForResults = completed >= MIN_ANSWERS_REQUIRED;
+  const [destinations, setDestinations] = useState<Destination[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!readyForResults) {
-      setShowResults(false);
+    if (selection) {
+      setValidationMessage(null);
     }
-  }, [readyForResults]);
+  }, [selection]);
 
-  const handleImportance = (topicId: string, value: ImportanceLevel) => {
-    setAnswers((current) => ({
-      ...current,
-      [topicId]: { ...current[topicId], importance: value },
-    }));
-  };
+  useEffect(() => {
+    if (!showResults || selection !== "extreme" || destinations || loading) {
+      return;
+    }
 
-  const handlePreference = (topicId: string, value: string) => {
-    setAnswers((current) => ({
-      ...current,
-      [topicId]: {
-        ...current[topicId],
-        preference: current[topicId].preference === value ? null : value,
-      },
-    }));
-  };
+    let isActive = true;
+    const controller = new AbortController();
 
-  const reset = () => {
-    setAnswers(buildInitialAnswers());
+    async function loadDestinations() {
+      try {
+        setLoading(true);
+        setFetchError(null);
+        const response = await fetch("/api/destinations", { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error("Request failed");
+        }
+        const data = (await response.json()) as Destination[];
+        if (isActive) {
+          setDestinations(data);
+        }
+      } catch (error) {
+        if (isAbortError(error)) {
+          return;
+        }
+        if (isActive) {
+          setFetchError("Unable to load destinations right now. Please try again.");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadDestinations();
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [showResults, selection, destinations, loading]);
+
+  const filteredDestinations = useMemo(() => {
+    if (selection !== "extreme" || !destinations) {
+      return [];
+    }
+
+    return destinations.filter((destination) => {
+      const grade = destination.giffordScore?.trim().toUpperCase() ?? "";
+      const rating = grade.charAt(0);
+      return RELAXED_GIFFORD_GRADES.has(rating);
+    });
+  }, [destinations, selection]);
+
+  const resultsPreview = useMemo(() => filteredDestinations.slice(0, 12), [filteredDestinations]);
+  const totalMatches = filteredDestinations.length;
+
+  const handleChoiceClick = (value: ChoiceValue) => {
+    setSelection((current) => (current === value ? null : value));
     setShowResults(false);
   };
 
   const handleShowResults = () => {
-    if (readyForResults) {
-      setShowResults(true);
+    if (!selection) {
+      setValidationMessage("Pick an option above to see your results.");
+      setShowResults(false);
+      return;
     }
+    setValidationMessage(null);
+    setShowResults(true);
   };
 
-  const summary = useMemo(() => {
-    return TOPICS.map((topic) => {
-      const answer = answers[topic.id];
-      if (!answer || !answer.importance) {
-        return {
-          id: topic.id,
-          title: topic.title,
-          text: "You have not answered this one yet.",
-        };
-      }
-
-      const importanceLabel = IMPORTANCE_CHOICES.find(
-        (choice) => choice.value === answer.importance,
-      )?.label;
-
-      let preferenceText = "";
-      if (topic.options && answer.preference) {
-        const pref = topic.options.find((option) => option.value === answer.preference);
-        if (pref) {
-          preferenceText = ` You leaned toward "${pref.label}".`;
-        }
-      }
-
-      const core = importanceLabel ? `${importanceLabel} importance.` : "Importance noted.";
-      const text = preferenceText ? `${core}${preferenceText}` : core;
-
-      return {
-        id: topic.id,
-        title: topic.title,
-        text,
-      };
-    });
-  }, [answers]);
-
-  const resultsButtonClassName = readyForResults
-    ? "rounded-full px-4 py-2 text-sm font-semibold text-white transition bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] shadow-sm hover:shadow-md"
-    : "rounded-full border border-dashed border-color-border/60 px-4 py-2 text-sm font-semibold text-muted-foreground transition";
-
+  const handleReset = () => {
+    setSelection(null);
+    setShowResults(false);
+    setValidationMessage(null);
+  };
 
   return (
-    <main className="mx-auto max-w-5xl space-y-10 px-4 py-12">
+    <main className="mx-auto max-w-4xl space-y-10 px-4 py-12">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Preference quiz</p>
-          <h1 className="text-3xl font-semibold text-gradient">Tell us what matters most</h1>
+          <h1 className="text-3xl font-semibold text-gradient">Tell us how you feel about the Second Amendment</h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            Answer in plain English: tap how vital each topic is and describe the vibe you are chasing. We will use your
-            picks to steer recommendations inside the explorer.
+            Answer the single question below in plain English. We will surface destinations that line up with your view when you ask for the results.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -217,136 +152,114 @@ export default function QuizPage() {
         </div>
       </header>
 
-      <section className="glass-panel p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{completed} of {TOPICS.length} topics answered</p>
-            <p className="text-sm text-muted-foreground">No wrong answers - just tell the story of your ideal spot.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={handleShowResults}
-              disabled={!readyForResults}
-              aria-disabled={!readyForResults}
-              className={resultsButtonClassName}
-            >
-              Show my results
-            </button>
-            <button
-              type="button"
-              onClick={reset}
-              className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold transition hover:text-primary"
-            >
-              Reset responses
-            </button>
-          </div>
+      <section className="glass-panel space-y-5 p-6">
+        <header className="space-y-2">
+          <h2 className="text-2xl font-semibold text-primary">How important is the Second Amendment to you?</h2>
+          <p className="text-sm text-muted-foreground">Pick the option that best captures your comfort level with local firearm policy.</p>
+        </header>
+        <div className="flex flex-wrap gap-2">
+          {CHOICES.map((choice) => {
+            const isActive = selection === choice.value;
+            return (
+              <button
+                key={choice.value}
+                type="button"
+                onClick={() => handleChoiceClick(choice.value)}
+                className={`min-w-[200px] rounded-full border px-4 py-3 text-left text-sm transition ${
+                  isActive
+                    ? "border-transparent bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] text-white shadow-sm"
+                    : "border-color-border/60 text-muted-foreground hover:text-primary"
+                }`}
+                aria-pressed={isActive}
+              >
+                <span className="block font-semibold">{choice.label}</span>
+                <span className="block text-xs opacity-80">{choice.helper}</span>
+              </button>
+            );
+          })}
         </div>
-        <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-color-border/40">
-          <div
-            className="h-full rounded-full bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] transition-all"
-            style={{ width: `${(completed / TOPICS.length) * 100}%` }}
-            aria-hidden
-          />
-        </div>
+        {validationMessage ? (
+          <p className="text-sm font-medium text-red-400">{validationMessage}</p>
+        ) : null}
       </section>
 
-      <div className="space-y-6">
-        {TOPICS.map((topic) => {
-          const answer = answers[topic.id];
-          return (
-            <article key={topic.id} className="glass-panel space-y-5 p-6">
-              <header className="space-y-2">
-                <h2 className="text-2xl font-semibold text-primary">{topic.title}</h2>
-                <p className="text-sm text-muted-foreground">{topic.description}</p>
-              </header>
-
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-secondary">{topic.prompt}</p>
-                <div className="flex flex-wrap gap-2">
-                  {IMPORTANCE_CHOICES.map((choice) => {
-                    const isActive = answer.importance === choice.value;
-                    return (
-                      <button
-                        key={choice.value}
-                        type="button"
-                        onClick={() => handleImportance(topic.id, choice.value)}
-                        className={`min-w-[160px] rounded-full border px-4 py-2 text-left text-sm transition ${
-                          isActive
-                            ? "border-transparent bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] text-white shadow-sm"
-                            : "border-color-border/60 text-muted-foreground hover:text-primary"
-                        }`}
-                        aria-pressed={isActive}
-                      >
-                        <span className="block font-semibold">{choice.label}</span>
-                        <span className="block text-xs opacity-80">{choice.helper}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {topic.options ? (
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-secondary">{topic.preferencePrompt}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {topic.options.map((option) => {
-                      const isActive = answer.preference === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => handlePreference(topic.id, option.value)}
-                          className={`min-w-[160px] rounded-full border px-4 py-2 text-left text-sm transition ${
-                            isActive
-                              ? "border-transparent bg-color-muted text-primary shadow-sm"
-                              : "border-color-border/60 text-muted-foreground hover:text-primary"
-                          }`}
-                          aria-pressed={isActive}
-                        >
-                          <span className="block font-semibold">{option.label}</span>
-                          <span className="block text-xs opacity-80">{option.helper}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : null}
-            </article>
-          );
-        })}
-      </div>
-
       <section className="glass-panel space-y-4 p-6">
-        <h2 className="text-2xl font-semibold text-primary">Your story so far</h2>
-        <p className="text-sm text-muted-foreground">
-          These notes become the backbone for matching you with destinations. Adjust anytime - everything updates on the fly.
-        </p>
-        {showResults ? (
-          <>
-            <ul className="space-y-2">
-              {summary.map((item) => (
-                <li
-                  key={item.id}
-                  className="rounded-lg border border-color-border/50 bg-color-surface/40 px-4 py-3 text-sm"
-                >
-                  <span className="font-semibold text-primary">{item.title}:</span>{" "}
-                  <span className="text-muted-foreground">{item.text}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold transition hover:text-primary"
-            >
-              Explore destinations
-            </Link>
-          </>
-        ) : (
-          <div className="rounded-lg border border-dashed border-color-border/60 bg-color-surface/30 px-4 py-6 text-sm text-muted-foreground">
-            Answer at least {MIN_ANSWERS_REQUIRED} topics, then press the Show my results button to generate your guidance summary.
-          </div>
-        )}
+        <div className="space-y-1">
+          <h2 className="text-2xl font-semibold text-primary">Results</h2>
+          <p className="text-sm text-muted-foreground">
+            Your answer guides which destinations we highlight. Tap the button below whenever you are ready.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {showResults ? (
+            selection === "extreme" ? (
+              <div className="space-y-3">
+                {loading ? (
+                  <p className="text-sm text-muted-foreground">Loading destinations that match your preference...</p>
+                ) : fetchError ? (
+                  <p className="text-sm text-red-400">{fetchError}</p>
+                ) : resultsPreview.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                      Showing {resultsPreview.length} of {totalMatches} matches with relaxed Giffords grades (F, D, or C).
+                    </p>
+                    <ul className="space-y-2">
+                      {resultsPreview.map((destination) => (
+                        <li
+                          key={destination.id}
+                          className="rounded-lg border border-color-border/50 bg-color-surface/40 px-4 py-3 text-sm"
+                        >
+                          <span className="font-semibold text-primary">
+                            {destination.city}, {destination.state}
+                          </span>
+                          <span className="ml-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                            Giffords grade {destination.giffordScore || "N/A"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    None of the tracked destinations match that profile yet. Add more locations to the data store and try again.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Focus on other lifestyle factors such as taxes, benefits, and culture. When the Second Amendment is less critical, the full explorer is your best guide.
+              </p>
+            )
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Select an answer above and press Show my results to see how it shapes your destination list.
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 border-t border-color-border/50 pt-4">
+          <button
+            type="button"
+            onClick={handleShowResults}
+            className="rounded-full bg-[linear-gradient(120deg,var(--accent),var(--accent-secondary))] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md"
+          >
+            Show my results
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold transition hover:text-primary"
+          >
+            Reset quiz
+          </button>
+          <Link
+            href="/"
+            className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold transition hover:text-primary"
+          >
+            Explore destinations
+          </Link>
+        </div>
       </section>
     </main>
   );
