@@ -144,7 +144,7 @@ export default function QuizPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/"
-            className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold transition hover:text-primary"
+            className="rounded-full border border-color-border/60 px-6 py-2 text-xs font-semibold transition hover:text-primary whitespace-nowrap"
           >
             Back to explorer
           </Link>
