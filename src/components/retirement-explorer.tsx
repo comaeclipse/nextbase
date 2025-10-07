@@ -89,6 +89,12 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link
+            href="/quiz"
+            className="rounded-full border border-color-border/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition hover:text-primary"
+          >
+            Take the quiz
+          </Link>
           <div className="flex items-center gap-2 rounded-full border border-color-border/60 px-1 py-1 text-xs font-semibold text-muted-foreground">
             <button
               type="button"
