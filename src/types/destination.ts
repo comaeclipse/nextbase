@@ -22,6 +22,9 @@ export interface Destination {
   marijuanaStatus: MarijuanaStatus;
   firearmLaws: FirearmLaw;
   giffordScore: string;
+  magazineLimit: string;
+  ghostGunBan: boolean;
+  assaultWeaponBan: boolean;
   veteranBenefits: string;
   climate: string;
   snowfall: number;
