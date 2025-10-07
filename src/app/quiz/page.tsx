@@ -93,7 +93,7 @@ export default function QuizPage() {
       isActive = false;
       controller.abort();
     };
-  }, [showResults, selection, destinations, loading]);
+  }, [showResults, selection, destinations]);
 
   const filteredDestinations = useMemo(() => {
     if (selection !== "extreme" || !destinations) {
