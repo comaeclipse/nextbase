@@ -15,6 +15,7 @@ export interface Destination {
   stateParty: GovernorParty;
   governorParty: GovernorParty;
   mayorParty: GovernorParty;
+  cityPoliticalLean: string;
   population: number;
   density: number;
   salesTax: number;
@@ -35,7 +36,12 @@ export interface Destination {
   sunnyDays: number;
   lgbtqScore: number;
   techHub: boolean;
+  militaryHub: boolean;
   vaSupport: boolean;
+  nearestVA: string;
+  distanceToVA: string;
+  humiditySummer: number;
+  description: string;
   tciScore: number;
   alwScore: number;
   ahsScore: number;

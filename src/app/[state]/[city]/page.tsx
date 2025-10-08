@@ -147,8 +147,10 @@ export default async function DestinationPage({
             {formatPartyBadge(destination.governorParty)}
           </div>
           <div className="flex items-center justify-between rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
-            <span className="text-sm text-muted-foreground">Mayor</span>
-            {formatPartyBadge(destination.mayorParty)}
+            <span className="text-sm text-muted-foreground">City Political Lean</span>
+            <span className="text-sm font-semibold text-primary text-right">
+              {destination.cityPoliticalLean}
+            </span>
           </div>
         </div>
 
@@ -204,7 +206,7 @@ export default async function DestinationPage({
       {/* Other Metrics */}
       <section className="glass-panel p-6">
         <h2 className="mb-4 text-2xl font-semibold text-primary">Additional Information</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
             <p className="mb-2 text-sm text-muted-foreground">Marijuana Status</p>
             <p className="text-lg font-semibold capitalize text-primary">{destination.marijuanaStatus}</p>
@@ -223,7 +225,36 @@ export default async function DestinationPage({
               {destination.lgbtqScore || 'Not rated'}
             </p>
           </div>
+          <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
+            <p className="mb-2 text-sm text-muted-foreground">Military Hub Presence</p>
+            <p className="text-lg font-semibold text-primary">{destination.militaryHub ? "Yes" : "No"}</p>
+          </div>
+          <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
+            <p className="mb-2 text-sm text-muted-foreground">Nearest VA Facility</p>
+            <p className="text-lg font-semibold text-primary">
+              {destination.nearestVA || "Not listed"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
+            <p className="mb-2 text-sm text-muted-foreground">Distance to VA</p>
+            <p className="text-lg font-semibold text-primary">
+              {destination.distanceToVA || "Not listed"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
+            <p className="mb-2 text-sm text-muted-foreground">Summer Humidity</p>
+            <p className="text-lg font-semibold text-primary">
+              {destination.humiditySummer ? `${destination.humiditySummer}%` : "Not listed"}
+            </p>
+          </div>
         </div>
+
+        {destination.description ? (
+          <div className="mt-4 rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
+            <p className="mb-2 text-sm text-muted-foreground">Why it stands out</p>
+            <p className="text-sm leading-relaxed text-primary">{destination.description}</p>
+          </div>
+        ) : null}
 
         {destination.veteranBenefits && destination.veteranBenefits !== 'No state-specific veteran benefit noted.' && (
           <div className="mt-4 rounded-lg border border-color-border/50 bg-color-surface/40 p-4">

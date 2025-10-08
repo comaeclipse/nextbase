@@ -38,11 +38,11 @@ type RetirementExplorerProps = {
 export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "table">("grid");
-  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   const filtered = useMemo(() => {
     return destinations.filter((destination) => {
-      if (recommendation && !matchesRecommendation(destination, recommendation)) {
+      if (recommendations.length > 0 && !recommendations.some(rec => matchesRecommendation(destination, rec))) {
         return false;
       }
       if (search) {
@@ -54,16 +54,20 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
       }
       return true;
     });
-  }, [destinations, recommendation, search]);
+  }, [destinations, recommendations, search]);
 
   const headingText =
-    recommendation === "cheap-gas"
+    recommendations.includes("cheap-gas")
       ? `Showing ${filtered.length} cities where gas prices are less than the average of ${formatUsd.format(NATIONAL_GAS_AVERAGE)}.`
       : `${filtered.length} destinations`;
 
 
   const handleRecommendationClick = (id: Recommendation) => {
-    setRecommendation((current) => (current === id ? null : id));
+    setRecommendations((current) => 
+      current.includes(id) 
+        ? current.filter(rec => rec !== id)
+        : [...current, id]
+    );
   };
 
 
@@ -123,7 +127,7 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
         </div>
         <div className="flex flex-wrap gap-2">
           {RECOMMENDATIONS.map((option) => {
-            const isActive = recommendation === option.id;
+            const isActive = recommendations.includes(option.id);
             return (
               <button
                 key={option.id}

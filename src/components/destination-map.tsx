@@ -43,6 +43,7 @@ const COLOR_PALETTE: Record<MarkerColor, { stroke: string; fill: string }> = {
 
 export function DestinationMap({ markers }: DestinationMapProps) {
   const [mounted, setMounted] = useState(false);
+  const [hoveredMarkerId, setHoveredMarkerId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -90,16 +91,29 @@ export function DestinationMap({ markers }: DestinationMapProps) {
               <CircleMarker
                 key={marker.id}
                 center={[marker.lat, marker.lon]}
-                radius={6.5}
+                radius={hoveredMarkerId === marker.id ? 8 : 6.5}
                 pathOptions={{ color: palette.stroke, fillColor: palette.fill, weight: 1.5, fillOpacity: 1 }}
+                eventHandlers={{
+                  mouseover: () => setHoveredMarkerId(marker.id),
+                  mouseout: () => setHoveredMarkerId((current) => (current === marker.id ? null : current)),
+                }}
               >
-                <Tooltip direction="top" offset={[0, -4]} opacity={1} className="bg-color-surface/90 text-xs font-medium">
-                  <div className="space-y-0.5">
-                    <p>
+                <Tooltip
+                  direction="top"
+                  offset={[0, -6]}
+                  opacity={1}
+                  sticky
+                  className="rounded-md bg-color-surface/90 px-3 py-2 text-xs font-medium shadow-md"
+                >
+                  <div className="space-y-1">
+                    <p className="font-semibold text-primary">
                       {marker.city}, {marker.stateCode}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      Population {populationLabel} &middot; Giffords {marker.giffordScore || "N/A"}
+                      Population {populationLabel}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Giffords score {marker.giffordScore || "N/A"}
                     </p>
                   </div>
                 </Tooltip>
