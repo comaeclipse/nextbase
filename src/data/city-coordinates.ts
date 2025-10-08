@@ -1,0 +1,42 @@
+export type CityCoordinate = {
+  lat: number;
+  lon: number;
+};
+
+export const CITY_COORDINATES: Record<string, CityCoordinate> = {
+  "anchorage-alaska": { lat: 61.2176, lon: -149.9003 },
+  "huntsville-alabama": { lat: 34.7304, lon: -86.5861 },
+  "mobile-alabama": { lat: 30.6954, lon: -88.0399 },
+  "little-rock-arkansas": { lat: 34.7465, lon: -92.2896 },
+  "tuscon-arizona": { lat: 32.2226, lon: -110.9747 },
+  "phoenix-arizona": { lat: 33.4484, lon: -112.074 },
+  "yuba-city-california": { lat: 39.1404, lon: -121.6169 },
+  "colorado-springs-colorado": { lat: 38.8339, lon: -104.8214 },
+  "pensacola-florida": { lat: 30.4213, lon: -87.2169 },
+  "atlanta-georgia": { lat: 33.749, lon: -84.388 },
+  "honolulu-hawaii": { lat: 21.3069, lon: -157.8583 },
+  "des-moines-iowa": { lat: 41.5868, lon: -93.625 },
+  "kuna-idaho": { lat: 43.4919, lon: -116.4201 },
+  "boise-idaho": { lat: 43.615, lon: -116.2023 },
+  "louisville-kentucky": { lat: 38.2527, lon: -85.7585 },
+  "boston-massachusetts": { lat: 42.3601, lon: -71.0589 },
+  "portland-maine": { lat: 43.6591, lon: -70.2568 },
+  "jackson-mississippi": { lat: 32.2988, lon: -90.1848 },
+  "indian-trail-north-carolina": { lat: 35.0768, lon: -80.6701 },
+  "raleigh-north-carolina": { lat: 35.7796, lon: -78.6382 },
+  "omaha-nebraska": { lat: 41.2565, lon: -95.9345 },
+  "manchester-new-hampshire": { lat: 42.9956, lon: -71.4548 },
+  "albuquerque-new-mexico": { lat: 35.0844, lon: -106.6504 },
+  "las-vegas-nevada": { lat: 36.1699, lon: -115.1398 },
+  "tulsa-oklahoma": { lat: 36.154, lon: -95.9928 },
+  "portland-oregon": { lat: 45.5152, lon: -122.6784 },
+  "irmo-south-carolina": { lat: 34.0854, lon: -81.1832 },
+  "greenville-south-carolina": { lat: 34.8526, lon: -82.394 },
+  "sioux-falls-south-dakota": { lat: 43.5446, lon: -96.7311 },
+  "nashville-tennessee": { lat: 36.1627, lon: -86.7816 },
+  "houston-texas": { lat: 29.7604, lon: -95.3698 },
+  "el-paso-texas": { lat: 31.7619, lon: -106.485 },
+  "salt-lake-city-utah": { lat: 40.7608, lon: -111.891 },
+  "milwaukee-wisconsin": { lat: 43.0389, lon: -87.9065 },
+  "cheyenne-wyoming": { lat: 41.1401, lon: -104.8202 },
+};

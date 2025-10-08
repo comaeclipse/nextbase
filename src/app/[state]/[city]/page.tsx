@@ -111,15 +111,15 @@ export default async function DestinationPage({
             <p className="text-xl font-semibold text-primary">{destination.sunnyDays}</p>
           </div>
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
-            <p className="text-sm text-muted-foreground">Average Low Winter (deg F)</p>
+            <p className="text-sm text-muted-foreground">Average Low Winter (°F)</p>
             <p className="text-xl font-semibold text-primary">
-              {typeof destination.alwScore === "number" ? `${destination.alwScore} deg F` : "N/A"}
+              {typeof destination.alwScore === "number" ? `${destination.alwScore}° F` : "N/A"}
             </p>
           </div>
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
-            <p className="text-sm text-muted-foreground">Average High Summer (deg F)</p>
+            <p className="text-sm text-muted-foreground">Average High Summer (°F)</p>
             <p className="text-xl font-semibold text-primary">
-              {typeof destination.ahsScore === "number" ? `${destination.ahsScore} deg F` : "N/A"}
+              {typeof destination.ahsScore === "number" ? `${destination.ahsScore}° F` : "N/A"}
             </p>
           </div>
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
