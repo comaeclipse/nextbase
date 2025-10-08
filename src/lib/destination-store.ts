@@ -1,25 +1,15 @@
-import { readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
-
 import type { Destination } from "@/types/destination";
 
-const DATA_FILE = resolve(process.cwd(), "src", "data", "destinations.json");
+import { getDatabase } from "./db";
+
 const IS_READ_ONLY_ENV = process.env.VERCEL === "1" || process.env.NEXT_RUNTIME === "edge";
 
+type SqliteErrorLike = Error & {
+  code?: string;
+};
+
 let fallbackCache: Destination[] | null = null;
-
-function isFsError(error: unknown): error is NodeJS.ErrnoException {
-  return Boolean(error) && typeof error === "object" && "code" in (error as NodeJS.ErrnoException);
-}
-
-async function readFromFile(): Promise<Destination[]> {
-  const raw = await readFile(DATA_FILE, "utf-8");
-  const parsed = JSON.parse(raw);
-  if (!Array.isArray(parsed)) {
-    throw new Error("Destination data is not an array");
-  }
-  return parsed as Destination[];
-}
+let databaseInitialized = false;
 
 async function readFallback(): Promise<Destination[]> {
   if (!fallbackCache) {
@@ -33,34 +23,61 @@ async function readFallback(): Promise<Destination[]> {
   return fallbackCache.slice();
 }
 
-async function readStore(): Promise<{ destinations: Destination[]; readonly: boolean }> {
-  try {
-    const destinations = await readFromFile();
-    return { destinations, readonly: false };
-  } catch (error) {
-    if (isFsError(error)) {
-      if (error.code === "ENOENT") {
-        if (IS_READ_ONLY_ENV) {
-          return { destinations: await readFallback(), readonly: true };
+function isSqliteError(error: unknown): error is SqliteErrorLike {
+  return error instanceof Error && error.name === "SqliteError";
+}
+
+function isReadOnlySqliteError(error: SqliteErrorLike): boolean {
+  return Boolean(error.code && (error.code === "SQLITE_READONLY" || error.code === "SQLITE_PERM" || error.code === "SQLITE_CANTOPEN"));
+}
+
+function parseRows(rows: { payload: string }[]): Destination[] {
+  return rows.map((row) => {
+    const parsed = JSON.parse(row.payload);
+    if (!parsed || typeof parsed !== "object") {
+      throw new Error("Destination row payload is invalid JSON");
+    }
+    return parsed as Destination;
+  });
+}
+
+async function ensureDatabaseReady() {
+  if (databaseInitialized) {
+    return;
+  }
+  const db = getDatabase();
+  const result = db.prepare("SELECT COUNT(*) as count FROM destinations").get() as { count: number };
+  if (result.count === 0) {
+    const seedData = await readFallback();
+    if (seedData.length > 0) {
+      const insert = db.prepare("INSERT INTO destinations (id, payload) VALUES (?, ?)");
+      const insertMany = db.transaction((records: Destination[]) => {
+        for (const record of records) {
+          insert.run(record.id, JSON.stringify(record));
         }
-        await writeStore([]);
-        return { destinations: [], readonly: false };
-      }
-      if (error.code === "EACCES" || error.code === "EROFS") {
-        return { destinations: await readFallback(), readonly: true };
-      }
+      });
+      insertMany(seedData);
+    }
+  }
+  databaseInitialized = true;
+}
+
+async function readStore(): Promise<{ destinations: Destination[]; readonly: boolean }> {
+  if (IS_READ_ONLY_ENV) {
+    return { destinations: await readFallback(), readonly: true };
+  }
+
+  try {
+    await ensureDatabaseReady();
+    const db = getDatabase();
+    const rows = db.prepare("SELECT payload FROM destinations").all() as { payload: string }[];
+    return { destinations: parseRows(rows), readonly: false };
+  } catch (error) {
+    if (isSqliteError(error) && isReadOnlySqliteError(error)) {
+      return { destinations: await readFallback(), readonly: true };
     }
     throw error;
   }
-}
-
-async function writeStore(destinations: Destination[]) {
-  if (IS_READ_ONLY_ENV) {
-    throw new Error("Destination data is read-only in this deployment environment.");
-  }
-  const payload = `${JSON.stringify(destinations, null, 2)}
-`;
-  await writeFile(DATA_FILE, payload, "utf-8");
 }
 
 export async function loadDestinations(): Promise<Destination[]> {
@@ -69,38 +86,47 @@ export async function loadDestinations(): Promise<Destination[]> {
 }
 
 export async function createDestination(destination: Destination): Promise<void> {
-  const { destinations, readonly } = await readStore();
-  if (readonly) {
+  if (IS_READ_ONLY_ENV) {
     throw new Error("Destination store is read-only in this environment.");
   }
-  if (destinations.some((entry) => entry.id === destination.id)) {
-    throw new Error(`Destination with id "${destination.id}" already exists.`);
+
+  try {
+    await ensureDatabaseReady();
+    const db = getDatabase();
+    db.prepare("INSERT INTO destinations (id, payload) VALUES (?, ?)").run(destination.id, JSON.stringify(destination));
+  } catch (error) {
+    if (isSqliteError(error) && error.code === "SQLITE_CONSTRAINT_PRIMARYKEY") {
+      throw new Error(`Destination with id "${destination.id}" already exists.`);
+    }
+    throw error;
   }
-  destinations.push(destination);
-  await writeStore(destinations);
 }
 
 export async function updateDestination(id: string, updates: Partial<Destination>): Promise<void> {
-  const { destinations, readonly } = await readStore();
-  if (readonly) {
+  if (IS_READ_ONLY_ENV) {
     throw new Error("Destination store is read-only in this environment.");
   }
-  const index = destinations.findIndex((entry) => entry.id === id);
-  if (index === -1) {
+
+  await ensureDatabaseReady();
+  const db = getDatabase();
+  const existing = db.prepare("SELECT payload FROM destinations WHERE id = ?").get(id) as { payload: string } | undefined;
+  if (!existing) {
     throw new Error("Destination not found.");
   }
-  destinations[index] = { ...destinations[index], ...updates, id };
-  await writeStore(destinations);
+  const current = JSON.parse(existing.payload) as Destination;
+  const next = { ...current, ...updates, id };
+  db.prepare("UPDATE destinations SET payload = ? WHERE id = ?").run(JSON.stringify(next), id);
 }
 
 export async function deleteDestination(id: string): Promise<void> {
-  const { destinations, readonly } = await readStore();
-  if (readonly) {
+  if (IS_READ_ONLY_ENV) {
     throw new Error("Destination store is read-only in this environment.");
   }
-  const next = destinations.filter((entry) => entry.id !== id);
-  if (next.length === destinations.length) {
+
+  await ensureDatabaseReady();
+  const db = getDatabase();
+  const result = db.prepare("DELETE FROM destinations WHERE id = ?").run(id);
+  if (result.changes === 0) {
     throw new Error("Destination not found.");
   }
-  await writeStore(next);
 }

@@ -1,6 +1,6 @@
 ﻿# Veterans Relocation Explorer
 
-A Next.js app that helps veterans compare relocation destinations across taxes, climate, cost of living, and state-level benefits. The app no longer depends on Postgres/Prisma; data now lives in a checked-in JSON file that is easy to maintain without a database.
+A Next.js app that helps veterans compare relocation destinations across taxes, climate, cost of living, and state-level benefits. The project now persists records in a lightweight SQLite database that lives alongside the source code—no external database server required.
 
 ## Prerequisites
 
@@ -17,7 +17,10 @@ npm run lint     # lint the project
 
 ## Data Source
 
-Destinations are stored in `src/data/destinations.json`. Each record uses the following shape:
+- Primary store: `src/data/destinations.sqlite` (auto-created on first run).
+- Seed data + read-only fallback: `src/data/destinations.json`.
+
+Each destination record uses the following shape:
 
 ```json
 {
@@ -60,7 +63,9 @@ Destinations are stored in `src/data/destinations.json`. Each record uses the fo
 
 ### Updating Destinations
 
-The dataset is static. Edit `src/data/destinations.json` directly and commit the changes whenever you need to add, update, or remove locations. To regenerate the file from the provided CSV, run `python scripts/import_locations.py`.
+1. If you want to refresh the dataset from the provided CSV, run `python scripts/import_locations.py` to regenerate `src/data/destinations.json`.
+2. Remove `src/data/destinations.sqlite` (or run the app in an empty directory) so the store reseeds itself from the updated JSON file the next time the server boots.
+3. Alternatively, use your favorite SQLite client to edit `src/data/destinations.sqlite` directly; the app reads and writes through this file in local environments.
 
 ## API
 
@@ -69,4 +74,4 @@ The dataset is static. Edit `src/data/destinations.json` directly and commit the
 ## Deployment Notes
 
 - The project builds with `next build --turbopack` (see `npm run build`).
-- Because the data source is a static JSON file, remember to commit any changes made in development before deploying.
+- Commit the generated SQLite file (`src/data/destinations.sqlite`) if you change it locally so deployments pick up the latest data. In read-only environments (Vercel edge or serverless), the app falls back to the bundled JSON seed.
