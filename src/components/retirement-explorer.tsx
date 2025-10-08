@@ -148,13 +148,13 @@ export function RetirementExplorer({ destinations }: RetirementExplorerProps) {
             placeholder="Search by city, state, or benefit"
             className="flex-1 rounded-lg border border-color-border/60 bg-transparent px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
           />
-          {recommendation ? (
+          {recommendations.length > 0 ? (
             <button
               type="button"
-              onClick={() => setRecommendation(null)}
+              onClick={() => setRecommendations([])}
               className="rounded-full border border-color-border/60 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-color-muted/40"
             >
-              Clear choice
+              Clear choices
             </button>
           ) : null}
         </div>
