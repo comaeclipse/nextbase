@@ -37,12 +37,12 @@ export async function initializeDatabase() {
     // Create index on JSONB fields for better performance
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_destinations_city 
-      ON destinations USING GIN ((payload->>'city'))
+      ON destinations ((payload->>'city'))
     `);
     
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_destinations_state 
-      ON destinations USING GIN ((payload->>'state'))
+      ON destinations ((payload->>'state'))
     `);
 
     console.log('Database schema initialized successfully');

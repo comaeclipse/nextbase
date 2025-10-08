@@ -40,10 +40,10 @@ async function seedPostgresFromFallback(): Promise<void> {
       return;
     }
 
-    // Insert all destinations
+    // Insert all destinations using UPSERT to avoid duplicates
     for (const destination of destinations) {
       await client.query(
-        'INSERT INTO destinations (id, payload) VALUES ($1, $2)',
+        'INSERT INTO destinations (id, payload) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
         [destination.id, JSON.stringify(destination)]
       );
     }
@@ -86,8 +86,8 @@ export async function createDestination(destination: Destination): Promise<void>
       'INSERT INTO destinations (id, payload) VALUES ($1, $2)',
       [destination.id, JSON.stringify(destination)]
     );
-  } catch (error: any) {
-    if (error.code === '23505') { // Unique violation
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') { // Unique violation
       throw new Error(`Destination with id "${destination.id}" already exists.`);
     }
     throw error;
