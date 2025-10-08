@@ -1,9 +1,15 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
-import { DestinationMap, type MapMarker } from "@/components/destination-map";
+import type { MapMarker } from "@/components/destination-map";
 import { ThemeToggle } from "@/components/theme-toggle";
+
+const DestinationMap = dynamic(
+  () => import("@/components/destination-map").then((mod) => ({ default: mod.DestinationMap })),
+  { ssr: false }
+);
 
 type MapOverviewProps = {
   markers: MapMarker[];
