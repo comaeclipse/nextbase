@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { loadDestinations } from "@/lib/destination-store";
-import type { Destination } from "@/types/destination";
 
 function toCitySegment(city: string) {
   return city
@@ -106,10 +105,22 @@ export default async function DestinationPage({
       <section className="glass-panel p-6">
         <h2 className="mb-4 text-2xl font-semibold text-primary">Climate & Weather</h2>
         <p className="mb-4 text-sm text-muted-foreground">{destination.climate}</p>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
             <p className="text-sm text-muted-foreground">Sunny Days</p>
             <p className="text-xl font-semibold text-primary">{destination.sunnyDays}</p>
+          </div>
+          <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
+            <p className="text-sm text-muted-foreground">Average Low Winter (deg F)</p>
+            <p className="text-xl font-semibold text-primary">
+              {typeof destination.alwScore === "number" ? `${destination.alwScore} deg F` : "N/A"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
+            <p className="text-sm text-muted-foreground">Average High Summer (deg F)</p>
+            <p className="text-xl font-semibold text-primary">
+              {typeof destination.ahsScore === "number" ? `${destination.ahsScore} deg F` : "N/A"}
+            </p>
           </div>
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
             <p className="text-sm text-muted-foreground">Snowfall (inches)</p>
@@ -121,6 +132,7 @@ export default async function DestinationPage({
           </div>
         </div>
       </section>
+
 
       {/* Politics */}
       <section className="glass-panel p-6">
@@ -176,13 +188,13 @@ export default async function DestinationPage({
             <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
               <p className="mb-2 text-sm text-muted-foreground">Ghost Gun Ban</p>
               <p className="text-lg font-semibold text-primary">
-                {destination.ghostGunBan ? '✓ Yes' : '✗ No'}
+                {destination.ghostGunBan ? "Yes" : "No"}
               </p>
             </div>
             <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
               <p className="mb-2 text-sm text-muted-foreground">Assault Weapon Ban</p>
               <p className="text-lg font-semibold text-primary">
-                {destination.assaultWeaponBan ? '✓ Yes' : '✗ No'}
+                {destination.assaultWeaponBan ? "Yes" : "No"}
               </p>
             </div>
           </div>
@@ -199,11 +211,11 @@ export default async function DestinationPage({
           </div>
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
             <p className="mb-2 text-sm text-muted-foreground">VA Support</p>
-            <p className="text-lg font-semibold text-primary">{destination.vaSupport ? '✓ Yes' : '✗ No'}</p>
+            <p className="text-lg font-semibold text-primary">{destination.vaSupport ? "Yes" : "No"}</p>
           </div>
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
             <p className="mb-2 text-sm text-muted-foreground">Tech Hub</p>
-            <p className="text-lg font-semibold text-primary">{destination.techHub ? '✓ Yes' : '✗ No'}</p>
+            <p className="text-lg font-semibold text-primary">{destination.techHub ? "Yes" : "No"}</p>
           </div>
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
             <p className="mb-2 text-sm text-muted-foreground">LGBTQ+ Equality Score</p>
@@ -224,18 +236,11 @@ export default async function DestinationPage({
       {/* Quality of Life Scores */}
       <section className="glass-panel p-6">
         <h2 className="mb-4 text-2xl font-semibold text-primary">Quality of Life Scores</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <p className="mb-4 text-sm text-muted-foreground">Use this snapshot to weigh everyday livability alongside the seasonal highs and lows above.</p>
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
             <p className="mb-2 text-sm text-muted-foreground">TCI Score</p>
             <p className="text-xl font-semibold text-primary">{destination.tciScore}</p>
-          </div>
-          <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
-            <p className="mb-2 text-sm text-muted-foreground">ALW Score</p>
-            <p className="text-xl font-semibold text-primary">{destination.alwScore}</p>
-          </div>
-          <div className="rounded-lg border border-color-border/50 bg-color-surface/40 p-4">
-            <p className="mb-2 text-sm text-muted-foreground">AHS Score</p>
-            <p className="text-xl font-semibold text-primary">{destination.ahsScore}</p>
           </div>
         </div>
       </section>
