@@ -4,6 +4,9 @@ import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
+// Initialize Postgres database
+import "@/lib/init-postgres";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
