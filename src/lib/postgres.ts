@@ -1,9 +1,14 @@
 import { Pool } from 'pg';
 
-// Create a connection pool
+// Create a connection pool with better timeout and connection management
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  // Serverless-friendly settings
+  max: 1, // Limit connections in serverless
+  idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+  connectionTimeoutMillis: 10000, // 10 second connection timeout
+  allowExitOnIdle: true, // Allow the pool to exit when all clients are idle
 });
 
 // Test the connection

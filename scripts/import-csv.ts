@@ -271,7 +271,7 @@ function parseCSV(csvPath: string, gunLawsMap: Map<string, GunLawInfo>) {
 
     const stateCode = get("State");
     const cityRaw = get("City");
-    const city = cityRaw === "Tuscon" ? "Tucson" : cityRaw;
+    const city = cityRaw === "Tuscon" ? "Tucson" : (cityRaw === "Minneapolish" ? "Minneapolis" : cityRaw);
     const county = get("County");
     const population = parseNumber(get("Population"));
     const density = parseNumber(get("Density"));
@@ -282,7 +282,8 @@ function parseCSV(csvPath: string, gunLawsMap: Map<string, GunLawInfo>) {
     const nearestVA = normalizeAvailability(get("NearestVA"));
     const distanceToVA = normalizeAvailability(get("DistanceToVA"));
     const humiditySummer = parseNumber(get("HumiditySummer"));
-    const militaryHub = parseBoolean(get("MilitaryHub"));
+    // Support either "MilitaryHub" or the renamed "DefenseHub"
+    const militaryHub = parseBoolean(get("MilitaryHub") || get("DefenseHub"));
     const description = sanitizeText(get("Description"));
 
     if (!population) {

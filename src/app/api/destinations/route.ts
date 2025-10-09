@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+// Ensure this route runs on the Node.js runtime (not Edge) so it can use Postgres
+export const runtime = 'nodejs';
+
 import { loadDestinations } from "@/lib/destination-store";
 
 export async function GET() {
