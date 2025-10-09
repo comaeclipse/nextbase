@@ -5,7 +5,9 @@ alwaysApply: true
 
 **Project:** NextBase 
 **Deployment:** Vercel  
-**Vercel Project ID:** `prj_sAkvxSt9gIlnPE4EjF42nmPUvCUk`  
+**Vercel Project ID:** `prj_sAkvxSt9gIlnPE4EjF42nmPUvCUk`
+
+vercel_project_id: prj_sAkvxSt9gIlnPE4EjF42nmPUvCUk
 
 **Rules:** 
 - Always assume Vercel deployment context  
