@@ -1,5 +1,5 @@
-import { pool } from './postgres';
 import type { Destination } from '@/types/destination';
+import { pool } from './postgres';
 
 async function readFromPostgres(): Promise<Destination[]> {
   const client = await pool.connect();
@@ -16,6 +16,41 @@ async function readFromPostgres(): Promise<Destination[]> {
 
 export async function loadDestinations(): Promise<Destination[]> {
   return await readFromPostgres();
+}
+
+export async function loadDestinationBySegments(
+  state: string,
+  citySegment: string,
+): Promise<Destination | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `
+        SELECT payload
+        FROM destinations
+        WHERE LOWER(payload->>'stateCode') = $1
+          AND REGEXP_REPLACE(
+                REGEXP_REPLACE(LOWER(payload->>'city'), '[^a-z0-9]+', '-', 'g'),
+                '(^-|-$)',
+                '',
+                'g'
+              ) = $2
+        LIMIT 1
+      `,
+      [state.toLowerCase(), citySegment.toLowerCase()],
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0].payload as Destination;
+  } catch (error) {
+    console.error('Error reading destination from Postgres:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function createDestination(destination: Destination): Promise<void> {

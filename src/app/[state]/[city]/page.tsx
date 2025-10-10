@@ -1,15 +1,11 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { ThemeToggle } from "@/components/theme-toggle";
-import { loadDestinations } from "@/lib/destination-store";
+import { loadDestinationBySegments } from "@/lib/destination-store";
 
-function toCitySegment(city: string) {
-  return city
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function formatPartyBadge(party: string) {
   const normalized = party.toLowerCase();
@@ -25,16 +21,10 @@ function formatPartyBadge(party: string) {
 export default async function DestinationPage({
   params,
 }: {
-  params: Promise<{ state: string; city: string }>;
+  params: { state: string; city: string };
 }) {
-  const { state, city } = await params;
-  const destinations = await loadDestinations();
-
-  const destination = destinations.find(
-    (d) =>
-      d.stateCode.toLowerCase() === state.toLowerCase() &&
-      toCitySegment(d.city) === city.toLowerCase()
-  );
+  const { state, city } = params;
+  const destination = await loadDestinationBySegments(state, city);
 
   if (!destination) {
     notFound();
