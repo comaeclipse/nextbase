@@ -273,7 +273,12 @@ export default function AdminDashboard() {
                     className="hover:bg-color-muted/20 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
-                      {dest.city}
+                      <Link
+                        href={`/admin/destinations/${dest.id}`}
+                        className="text-accent hover:text-accent-secondary transition-colors"
+                      >
+                        {dest.city}
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {dest.state}

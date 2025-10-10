@@ -1,6 +1,7 @@
 // Import Postgres implementation
 export {
   loadDestinations,
+  loadDestinationById,
   loadDestinationBySegments,
   createDestination,
   updateDestination,

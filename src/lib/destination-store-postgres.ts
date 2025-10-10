@@ -18,6 +18,27 @@ export async function loadDestinations(): Promise<Destination[]> {
   return await readFromPostgres();
 }
 
+export async function loadDestinationById(id: string): Promise<Destination | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      'SELECT payload FROM destinations WHERE id = $1 LIMIT 1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0].payload as Destination;
+  } catch (error) {
+    console.error('Error reading destination by id from Postgres:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function loadDestinationBySegments(
   state: string,
   citySegment: string,
