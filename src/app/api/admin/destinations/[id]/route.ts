@@ -17,13 +17,13 @@ function isAuthorized(request: NextRequest): boolean {
   }
 }
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
     const destination = await loadDestinationById(id);
     if (!destination) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -35,13 +35,13 @@ export async function GET(request: NextRequest, context: { params: { id: string 
   }
 }
 
-export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
     const updates = await request.json();
     if (!updates || typeof updates !== 'object') {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
